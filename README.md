@@ -1,3 +1,8 @@
+<a href="https://scan.coverity.com/projects/rlp_01">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/22710/badge.svg"/>
+</a>
+
 rlp-01
 
 This is a minimal RELP implementation. It has a RelpSession class, which is
