@@ -16,3 +16,21 @@ jobs:
 
       - name: Test
         run: mvn clean test
+
+  release:
+    needs: test
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: action/checkout@v2
+
+    - uses: action/setup-java@v2
+      with:
+        java-version: 1.8
+
+    - name: Package
+      run: mvn clean package
+
+    - name: Verify
+      run: mvn verify
