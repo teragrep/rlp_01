@@ -34,3 +34,20 @@ jobs:
 
     - name: Verify
       run: mvn verify
+      
+    - name: Setup Maven Central
+      if: github.ref == 'refs/heads/master'
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+        
+        server-id: # This should match the id of the repository Maven is connecting to
+        server-username: ${{ secrets.MAVEN_USERNAME }}
+        server-password: ${{ secrets.MAVEN_CENTRAL_TOKEN }} # Delete if you are using a gpg private key to login
+        
+        gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+        gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+      
+    - name: Publish
+      if: github.ref == 'refs/heads/master'
+      run: mvn deploy
