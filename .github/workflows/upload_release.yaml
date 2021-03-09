@@ -23,4 +23,4 @@ jobs:
           gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
       - name: Publish
-        run: mvn clean deploy
+        run: mvn -Drevision=${{ github.event.release.tag_name }} -Dsha1= -Dchangelist= clean deploy
