@@ -6,7 +6,7 @@
 	  <modelVersion>4.0.0</modelVersion>
 	  <artifactId>rlp_01</artifactId>
 	  <name>rlp_01</name>
-	  <description>rlp_01</description>
+	  <description>A minimal RELP implementation.</description>
 	  <url>https://teragrep.com</url>
 	  <groupId>com.teragrep</groupId>
           <version>${revision}${sha1}${changelist}</version>
