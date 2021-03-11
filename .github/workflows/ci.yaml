@@ -4,8 +4,11 @@ on: push
 
 jobs:
   verify:
-    name: Verify
+    name: Verify Code
     runs-on: ubuntu-latest
+    
+    env:
+      COVERITY: coverity_tool
 
     steps:
       - uses: actions/checkout@v2
@@ -15,14 +18,31 @@ jobs:
           java-version: 1.8
           
       - name: Cache Local Maven Repository
+        id: maven
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
 
       - name: Compile Test and Verify
         run: mvn clean verify
         
-      - name: Echo Workspace
-        run: echo $GITHUB_WORKSPACE
+      - name: Download Coverity
+        run: |
+          wget https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=rlp_01" -O ${{ env.COVERITY }}.tgz
+          mkdir ${{ env.COVERITY }}
+          tar zxvf ${{ env.COVERITY }}.tgz -C ${{ env.COVERITY }} --strip-components 1
+        
+      - name: Compile Coverity
+        run: |
+          ./${{ env.COVERITY }}/bin/cov-build --dir cov-int mvn -DskipTests=true clean compile
+          tar czvf rlp_01.tgz cov-int
+        
+      - name: Upload to Coverity
+        # Temp version for testing
+        run: curl \
+               --form token=${{ secrets.COVERITY_TOKEN }} \
+               --form email=${{ secrets.COVERITY_EMAIL }} \
+               --form file=@rlp_01.tgz --form version="1.0" \
+               --form description="automated upload" \
+               https://scan.coverity.com/builds?project=rlp_01
