@@ -45,9 +45,6 @@ jobs:
           
       - name: Check Coverity Existance
         run: test -e $COVERITY && "COVERITY_EXISTS=true" >> $GITHUB_ENV
-        
-      - name: Temp Check Files
-        run: ls
           
       - name: Download Coverity
         if: '$COVERITY_EXISTS' == 'false'
