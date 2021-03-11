@@ -22,11 +22,20 @@ jobs:
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
 
       - name: Compile Test and Verify
         run: mvn clean verify
-          
+        
+  coverity:
+    needs: verify
+  
+    name: Coverity
+    runs-on: ubuntu-latest
+    
+    env:
+      COVERITY: coverity_tool
+      
+    steps:
       - name: Download Coverity
         if: hashFiles('$COVERITY/VERSION.xml') == ''
         run: wget https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=rlp_01" -O coverity_tool.tgz && tar zxvf $COVERITY.tgz
@@ -37,3 +46,9 @@ jobs:
           path: ~/coverity_analysis_linux
           key: ${{ runner.os }}-coverity-${{ hashFiles('$COVERITY/VERSION.xml') }}
           restore-keys: ${{ runner.os }}-coverity-
+          
+      - name: Cache Local Maven Repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
