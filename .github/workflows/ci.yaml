@@ -34,19 +34,27 @@ jobs:
     
     env:
       COVERITY: coverity_tool
+      COVERITY_EXISTS: false
       
     steps:
-      - name: Restore Cached Coverity
+      - name: Cache Coverity
         uses: actions/cache@v2
         with:
           path: ~/coverity_analysis_linux
           key: ${{ runner.os }}-coverity-${{ hashFiles('$COVERITY/VERSION.xml') }}
           
+      - name: Check Coverity Existance
+        run: test -e $COVERITY && "COVERITY_EXISTS=true" >> $GITHUB_ENV
+        
+      - name: Temp Check Files
+        run: ls
+          
       - name: Download Coverity
-        if: hashFiles('$COVERITY/VERSION.xml') == ''
+        if: $COVERITY_EXISTS == 'false'
         run: wget https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=rlp_01" -O coverity_tool.tgz && tar zxvf $COVERITY.tgz
         
-      - name: Cache Coverity
+      - name: Cache Downloaded Coverity
+        if: $COVERITY_EXISTS == 'false'
         uses: actions/cache@v2
         with:
           path: ~/coverity_analysis_linux
