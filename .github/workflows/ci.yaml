@@ -23,6 +23,9 @@ jobs:
 
       - name: Test
         run: mvn clean test
+        
+      - name: Echo Workspace
+        run: echo $GITHUB_WORKSPACE
 
   verify:
     needs: test
