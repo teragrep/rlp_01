@@ -29,7 +29,7 @@ jobs:
           
       - name: Download Coverity
         if: hashFiles('$COVERITY_DIRECTORY/VERSION.xml') == ''
-        run: wget https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=rlp_01" -O ~/coverity_tool.tgz && tar zxvf ~/coverity_tool.tgz -C $COVERITY_DIRECTORY
+        run: wget https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=rlp_01" -O $COVERITY_DIRECTORY.tgz && tar zxvf $COVERITY_DIRECTORY.tgz
         
       - name: Cache Coverity
         uses: actions/cache@v2
