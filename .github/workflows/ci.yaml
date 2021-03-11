@@ -6,6 +6,9 @@ jobs:
   verify:
     name: Verify
     runs-on: ubuntu-latest
+    
+    env:
+      COVERITY_DIRECTORY: ~/coverity_analysis_linux
 
     steps:
       - uses: actions/checkout@v2
@@ -34,6 +37,3 @@ jobs:
           path: ~/coverity_analysis_linux
           key: ${{ runner.os }}-coverity-${{ hashFiles('$COVERITY_DIRECTORY/VERSION.xml') }}
           restore-keys: ${{ runner.os }}-coverity-
-          
-      env:
-        COVERITY_DIRECTORY: ~/coverity_analysis_linux
