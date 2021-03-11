@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      COVERITY_DIRECTORY: ~/coverity_analysis_linux
+      COVERITY_DIRECTORY: ~/coverity_tool
 
     steps:
       - uses: actions/checkout@v2
