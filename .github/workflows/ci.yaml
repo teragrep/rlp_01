@@ -13,9 +13,19 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 1.8
+          
+      - name: Cache Local Maven Repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
 
       - name: Test
         run: mvn clean test
+        
+      - name: Echo Workspace
+        run: echo $GITHUB_WORKSPACE
 
   verify:
     needs: test
