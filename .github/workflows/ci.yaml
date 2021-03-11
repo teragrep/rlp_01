@@ -44,7 +44,7 @@ jobs:
           key: ${{ runner.os }}-coverity-${{ hashFiles('$COVERITY/VERSION.xml') }}
           
       - name: Check Coverity Existance
-        run: test -e $COVERITY && "COVERITY_EXISTS=true" >> $GITHUB_ENV
+        run: test -e $COVERITY && echo "COVERITY_EXISTS=true" >> $GITHUB_ENV
           
       - name: Download Coverity
         if: '$COVERITY_EXISTS' == 'false'
