@@ -26,3 +26,6 @@ jobs:
         
       - name: Echo Workspace
         run: echo $GITHUB_WORKSPACE
+        
+      - name: Echo Runner
+        run: echo ${{ runner.os }}
