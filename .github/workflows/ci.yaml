@@ -28,7 +28,7 @@ jobs:
         run: mvn clean verify
           
       - name: Download Coverity
-        if: hashFiles('$COVERITY_DIRECTORY/VERSION.xml) == ''
+        if: hashFiles('$COVERITY_DIRECTORY/VERSION.xml') == ''
         run: wget https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=rlp_01" -O ~/coverity_tool.tgz && tar zxvf ~/coverity_tool.tgz -C $COVERITY_DIRECTORY
         
       - name: Cache Coverity
