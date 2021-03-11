@@ -23,13 +23,17 @@ jobs:
 
       - name: Compile Test and Verify
         run: mvn clean verify
+          
+      - name: Download Coverity
+        if: hashFiles('$COVERITY_DIRECTORY/VERSION.xml) == ''
+        run: wget https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=rlp_01" -O ~/coverity_tool.tgz && tar zxvf ~/coverity_tool.tgz -C $COVERITY_DIRECTORY
         
       - name: Cache Coverity
         uses: actions/cache@v2
         with:
           path: ~/coverity_analysis_linux
-          key: ${{ runner.os }}-coverity-${{ hashFiles('~/coverity_analysis_linux/VERSION.xml') }}
+          key: ${{ runner.os }}-coverity-${{ hashFiles('$COVERITY_DIRECTORY/VERSION.xml') }}
           restore-keys: ${{ runner.os }}-coverity-
           
-        if: steps.coverity.outputs.cache-hit != 'true'
-        run: wget https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=rlp_01" -O ~/coverity_tool.tgz && tar zxvf ~/coverity_tool.tgz -C ~/coverity_analysis_linux
+      env:
+        COVERITY_DIRECTORY: ~/coverity_analysis_linux
