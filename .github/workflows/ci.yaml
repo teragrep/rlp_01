@@ -24,7 +24,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
       - name: Compile Test and Verify
-        run: mvn clean verify
+        run: mvn --batch-mode clean verify
         
       - name: Cache Coverity
         id: cache_coverity
@@ -36,17 +36,17 @@ jobs:
       - name: Download Coverity
         if: steps.cache_coverity.outputs.cache-hit != 'true'
         run: |
-          wget https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=rlp_01" -O ${{ env.COVERITY }}.tgz
+          wget --quiet https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=rlp_01" -O ${{ env.COVERITY }}.tgz
           mkdir -p ${{ env.COVERITY }}
           tar zxvf ${{ env.COVERITY }}.tgz -C ${{ env.COVERITY }} --strip-components 1
         
       - name: Compile Coverity
         run: |
-          ${{ env.COVERITY }}/bin/cov-build --dir cov-int mvn -DskipTests=true clean compile
+          ${{ env.COVERITY }}/bin/cov-build --dir cov-int mvn -DskipTests=true --batch-mode clean compile
           tar czvf rlp_01.tgz cov-int
           
       #- name: Upload to Coverity
-      #  run: curl \
+      #  run: curl --silent \
       #         --form token=${{ secrets.COVERITY_TOKEN }} \
       #         --form email=${{ secrets.COVERITY_EMAIL }} \
       #         --form file=@rlp_01.tgz \
