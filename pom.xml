@@ -32,7 +32,7 @@
 	  <developers>
 	  	<developer>
 	  		<name>Mikko Kortelainen</name>
-	  		<email></email>
+	  		<email>1@teragrep.com</email>
 	  		<organization>Teragrep</organization>
 	  		<organizationUrl>https://teragrep.com</organizationUrl>
 	  	</developer>
@@ -64,7 +64,7 @@
     <repository>
       <id>ossrh</id>
       <name>Central Repository OSSRH</name>
-      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
  
