@@ -18,6 +18,7 @@ jobs:
           java-version: 1.8
           
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
           
       - name: Cache Local Maven Repository
         uses: actions/cache@v2
@@ -26,7 +27,9 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
       - name: Compile Test and Verify
-        run: mvn --batch-mode clean verify -Dgpg.passphrase=${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        run: mvn --batch-mode clean verify
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         
       - name: Cache Coverity
         id: cache_coverity
