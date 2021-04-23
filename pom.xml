@@ -67,6 +67,7 @@
     </snapshotRepository>
     <repository>
       <id>ossrh</id>
+      <name>Central Repository OSSRH</name>
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
@@ -131,6 +132,7 @@
           </execution>
         </executions>
       </plugin>
+      <!--
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -155,14 +157,15 @@
             </goals>
             <configuration>
               <gpgArguments>
-                <!-- Prevent gpg from using pinentry programs -->
-                <arg>--pinentry-mode</arg>
+                Prevent gpg from using pinentry programs
+                <arg>pinentry-mode</arg>
                 <arg>loopback</arg>
               </gpgArguments>
             </configuration>
           </execution>
         </executions>
       </plugin>
+      -->
     </plugins>
   </build>
 </project>
