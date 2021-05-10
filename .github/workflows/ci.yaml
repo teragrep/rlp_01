@@ -47,11 +47,5 @@ jobs:
           ${{ env.COVERITY }}/bin/cov-build --dir cov-int mvn -DskipTests=true --batch-mode clean compile
           tar czvf rlp_01.tgz cov-int
           
-      #- name: Upload to Coverity
-      #  run: curl --silent \
-      #         --form token=${{ secrets.COVERITY_TOKEN }} \
-      #         --form email=${{ secrets.COVERITY_EMAIL }} \
-      #         --form file=@rlp_01.tgz \
-      #         --form version="1.0" \
-      #         --form description="automated upload" \
-      #         https://scan.coverity.com/builds?project=rlp_01
+      - name: Upload to Coverity
+        run: curl --silent --form token=${{ secrets.COVERITY_TOKEN }} --form email=${{ secrets.COVERITY_EMAIL }} --form file=@rlp_01.tgz --form version="${GITHUB_REF##*/}" --form description="automated upload" https://scan.coverity.com/builds?project=rlp_01
