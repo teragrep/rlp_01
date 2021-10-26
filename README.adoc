@@ -5,6 +5,12 @@ rlp_01 implements RELP protocol in Java using NIO interface and enables users
 to send syslog formatted messages to a RELP server such as
 link:https://github.com/rsyslog/rsyslog[rsyslog].
 
+== License
+AGPLv3 with
+link:https://github.com/teragrep/rlp_01/blob/master/LICENSE#L665-L670[additional permissions]
+granted in the license.
+
+
 == Features
 Current
 
