@@ -63,16 +63,16 @@ public class RelpBatch {
     // requestId for user of the window
     private requestID reqID;
 
-    private TreeMap<Long, RelpRequest> requests;
-    private TreeMap<Long, RelpResponse> responses;
+    private TreeMap<Long, RelpFrameTX> requests;
+    private TreeMap<Long, RelpFrameRX> responses;
 
     // not processed queue, for asynchronous use
     private LinkedList<Long> workQueue;
 
     public RelpBatch() {
         this.reqID = new requestID();
-        this.requests = new TreeMap<Long, RelpRequest>();
-        this.responses = new TreeMap<Long, RelpResponse>();
+        this.requests = new TreeMap<Long, RelpFrameTX>();
+        this.responses = new TreeMap<Long, RelpFrameRX>();
         this.workQueue = new LinkedList<Long>();
     }
     
@@ -85,21 +85,21 @@ public class RelpBatch {
      *  The syslog msg.
      */
     public long insert(byte[] syslogMessage) {
-        RelpRequest relpRequest = new RelpRequest(syslogMessage);
+        RelpFrameTX relpRequest = new RelpFrameTX(syslogMessage);
         long id = this.reqID.getNextID();
         this.requests.put(id, relpRequest);
         this.workQueue.add(id);
         return id;
     }
 
-    public long putRequest(RelpRequest request) {
+    public long putRequest(RelpFrameTX request) {
         long id = this.reqID.getNextID();
         this.requests.put(id, request);
         this.workQueue.add(id);
         return id;
     }
 
-    public RelpRequest getRequest(Long id) {
+    public RelpFrameTX getRequest(Long id) {
         if (this.requests.containsKey(id)) {
             return this.requests.get(id);
         }
@@ -112,7 +112,7 @@ public class RelpBatch {
         this.requests.remove(id);
     }
 
-    public RelpResponse getResponse(Long id) {
+    public RelpFrameRX getResponse(Long id) {
         if (this.responses.containsKey(id)) {
             return this.responses.get(id);
         }
@@ -121,7 +121,7 @@ public class RelpBatch {
         }
     }
 
-    public void putResponse(Long id, RelpResponse response) {
+    public void putResponse(Long id, RelpFrameRX response) {
         this.responses.put(id, response);
     }
 

@@ -184,7 +184,7 @@ public class RelpConnection implements RelpSender {
         this.createSocketChannel();
 
         // send open session message
-        RelpRequest relpRequest = new RelpRequest(COMMAND_OPEN, OFFER);
+        RelpFrameTX relpRequest = new RelpFrameTX(COMMAND_OPEN, OFFER);
         RelpBatch connectionOpenBatch = new RelpBatch();
         long reqId = connectionOpenBatch.putRequest(relpRequest);
         this.sendBatch(connectionOpenBatch);
@@ -215,12 +215,12 @@ public class RelpConnection implements RelpSender {
         if (state != RelpConnectionState.OPEN) {
             throw new IllegalStateException("Session is not in open state, can not close.");
         }
-        RelpRequest relpRequest = new RelpRequest(COMMAND_CLOSE);
+        RelpFrameTX relpRequest = new RelpFrameTX(COMMAND_CLOSE);
         RelpBatch connectionCloseBatch = new RelpBatch();
         long reqId = connectionCloseBatch.putRequest(relpRequest);
         this.sendBatch(connectionCloseBatch);
         boolean closeSuccess = false;
-        RelpResponse closeResponse = connectionCloseBatch.getResponse(reqId);
+        RelpFrameRX closeResponse = connectionCloseBatch.getResponse(reqId);
         if (closeResponse.dataLength == 0) {
             closeSuccess = true;
         }
@@ -254,7 +254,7 @@ public class RelpConnection implements RelpSender {
             System.out.println("relpConnection.sendBatch> entry with wq len " + relpBatch.getWorkQueueLength());
         }
         // send a batch of requests..
-        RelpRequest relpRequest;
+        RelpFrameTX relpRequest;
 
         while (relpBatch.getWorkQueueLength() > 0) {
             long reqId = relpBatch.popWorkQueue();
@@ -343,7 +343,7 @@ public class RelpConnection implements RelpSender {
                         int txnId = parser.getTxnId();
                         if (window.isPending(txnId)) {
                             Long requestId = window.getPending(txnId);
-                            RelpResponse response = new RelpResponse(
+                            RelpFrameRX response = new RelpFrameRX(
                                     parser.getTxnId(),
                                     parser.getCommandString(),
                                     parser.getLength(),
@@ -370,7 +370,7 @@ public class RelpConnection implements RelpSender {
         }
     }
 
-    private void sendRelpRequestAsync(RelpRequest relpRequest) throws IOException, TimeoutException {
+    private void sendRelpRequestAsync(RelpFrameTX relpRequest) throws IOException, TimeoutException {
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("relpConnection.sendRelpRequestAsync> entry");
         }

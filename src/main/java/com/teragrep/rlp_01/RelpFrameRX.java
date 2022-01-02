@@ -55,16 +55,16 @@ import java.util.StringTokenizer;
  * which is the same as in RELP requests. Then there is DATA part.
  * 
  */
-public class RelpResponse extends AbstractRelpFrame {
+public class RelpFrameRX extends AbstractRelpFrame {
     /**
      * PAYLOAD
      */
     private String payload;
 
-    RelpResponse(int txID, String command, int dataLength, ByteBuffer src) {
+    RelpFrameRX(int txID, String command, int dataLength, ByteBuffer src) {
         super(txID, command, dataLength);
         if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("relpResponse> RelpResponse dataLength: " + dataLength);
+            System.out.println("relpResponse> RelpFrameRX dataLength: " + dataLength);
         }
         this.payload = super.readString(src, dataLength);
 

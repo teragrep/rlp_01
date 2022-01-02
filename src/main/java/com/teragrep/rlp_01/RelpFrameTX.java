@@ -58,23 +58,23 @@ import java.util.StringTokenizer;
  * Binary PAYLOAD (DATA in the BNF) is supported.
  * 
  */
-public class RelpRequest extends AbstractRelpFrame implements Writeable {
+public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
     /**
      * Creates a syslog message with given (possibly binary) data.
      * 
      * @param data
      */
-    RelpRequest(byte[] data) {
+    RelpFrameTX(byte[] data) {
         this(RelpConnection.COMMAND_SYSLOG, data);
     }
 
-    RelpRequest(String command,
+    RelpFrameTX(String command,
                 byte[] data) {
         super(command, data != null ? data.length : 0);
         this.data = data;
     }
 
-    RelpRequest(String command) {
+    RelpFrameTX(String command) {
         this(command, null);
     }
 
@@ -84,7 +84,7 @@ public class RelpRequest extends AbstractRelpFrame implements Writeable {
      */
     public void write(ByteBuffer dst) throws IOException {
         if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("RelpRequest.write> entry");
+            System.out.println("RelpFrameTX.write> entry");
         }
         // HEADER DATA TRAILER
         putHeader(dst);        
@@ -92,7 +92,7 @@ public class RelpRequest extends AbstractRelpFrame implements Writeable {
         // put TRAILER
         dst.put((byte)'\n');
         if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("RelpRequest.write> exit");
+            System.out.println("RelpFrameTX.write> exit");
         }
     }
 
@@ -116,14 +116,14 @@ public class RelpRequest extends AbstractRelpFrame implements Writeable {
 
     private void putData(ByteBuffer dst) {
         if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("RelpRequest.putData> entry");
+            System.out.println("RelpFrameTX.putData> entry");
         }
         if (this.data != null) {
                 dst.put((byte) ' ');
                 dst.put(this.data);
         }
         if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("RelpRequest.putData> exit");
+            System.out.println("RelpFrameTX.putData> exit");
         }
     }
 
@@ -136,7 +136,7 @@ public class RelpRequest extends AbstractRelpFrame implements Writeable {
      */
     private void putHeader(ByteBuffer dst) throws UnsupportedEncodingException {
         if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("RelpRequest.putHeader> entry");
+            System.out.println("RelpFrameTX.putHeader> entry");
         }
         dst.put(Integer.toString(this.transactionNumber).getBytes("US-ASCII"));
         dst.put((byte)' ');
@@ -144,7 +144,7 @@ public class RelpRequest extends AbstractRelpFrame implements Writeable {
         dst.put((byte)' ');
         dst.put(Integer.toString(this.dataLength).getBytes("US-ASCII"));
         if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("RelpRequest.putHeader> exit");
+            System.out.println("RelpFrameTX.putHeader> exit");
         }
     }
 
