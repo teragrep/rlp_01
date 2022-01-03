@@ -55,17 +55,17 @@ import java.util.StringTokenizer;
  * 
  */
 public abstract class AbstractRelpFrame {
-    
+
     /**
      * TXNR
      */
     protected int transactionNumber;
-    
+
     /**
      * COMMAND
      */
     protected String command;
-    
+
     /**
      * DATALEN
      */
@@ -85,6 +85,14 @@ public abstract class AbstractRelpFrame {
         this.transactionNumber = txID;
         this.command = command;
         this.dataLength = dataLength;
+    }
+
+    public String getCommand() {
+        return command;
+    }
+
+    public int getTransactionNumber() {
+        return transactionNumber;
     }
 
     public void setTransactionNumber(int txID) {

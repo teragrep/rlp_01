@@ -54,14 +54,14 @@ package com.teragrep.rlp_01;
 public class TxID {
 
     private int transactionIdentifier;
+    public int MAX_ID = 999999999;
 
     TxID() {
         this.transactionIdentifier = 1;
     }
 
     int getNextTransactionIdentifier() {
-        if (transactionIdentifier < 999999999) {
-        } else {
+        if( transactionIdentifier == MAX_ID ) {
             transactionIdentifier = 1;
         }
         return transactionIdentifier++;

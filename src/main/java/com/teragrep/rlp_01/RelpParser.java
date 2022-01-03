@@ -92,6 +92,8 @@ public class RelpParser {
         return this.responseData;
     }
 
+    public relpParserState getState() { return this.state; }
+
     private enum relpParserState {
         TXN,
         COMMAND,
