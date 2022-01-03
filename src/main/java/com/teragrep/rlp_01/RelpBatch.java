@@ -75,27 +75,35 @@ public class RelpBatch {
         this.responses = new TreeMap<Long, RelpFrameRX>();
         this.workQueue = new LinkedList<Long>();
     }
-    
+
     /**
-     * Adds a new syslog message to this sending window.
-     * Note: this method is not thread-safe, so concurrent threads
-     * calling this method must externally synchronized access to here.
-     * 
-     * @param syslogMessage
-     *  The syslog msg.
+     Adds a new syslog message to this sending window by converting
+     it into a RelpFrameTX.
+     Note: this method is not thread-safe, so concurrent threads
+     calling this method must externally synchronized access to here.
+
+     @param syslogMessage
+     The syslog msg.
      */
-    public long insert(byte[] syslogMessage) {
-        RelpFrameTX relpRequest = new RelpFrameTX(syslogMessage);
-        long id = this.reqID.getNextID();
-        this.requests.put(id, relpRequest);
-        this.workQueue.add(id);
-        return id;
+    public long insert( byte[] syslogMessage )
+    {
+        RelpFrameTX relpRequest = new RelpFrameTX( syslogMessage );
+        return putRequest( relpRequest );
     }
 
-    public long putRequest(RelpFrameTX request) {
+    /**
+     Adds a new RELP message frame to this sending window.
+
+     @param request
+     The request message.
+     @return id
+     The requestId of the newly created request.
+     */
+    public long putRequest( RelpFrameTX request )
+    {
         long id = this.reqID.getNextID();
-        this.requests.put(id, request);
-        this.workQueue.add(id);
+        this.requests.put( id, request );
+        this.workQueue.add( id );
         return id;
     }
 
