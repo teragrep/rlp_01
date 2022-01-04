@@ -68,18 +68,11 @@ public class RelpConnection implements RelpSender {
     private ByteBuffer preAllocatedTXBuffer;
     private static final int MAX_COMMAND_LENGTH  = 11;
 
-    public final static String COMMAND_OPEN            = "open";
-    public final static String COMMAND_CLOSE           = "close";
-    public final static String COMMAND_ABORT           = "abort";
-    public final static String COMMAND_SERVER_CLOSE    = "serverclose";
-    public final static String COMMAND_SYSLOG          = "syslog";
-    public final static String COMMAND_RESPONSE        = "rsp";
-
     private final static byte[] OFFER;
     
     static {
         try {
-            OFFER = ("\nrelp_version=0\nrelp_software=RLP-01\ncommands=" + COMMAND_SYSLOG + "\n").getBytes("US-ASCII");
+            OFFER = ("\nrelp_version=0\nrelp_software=RLP-01\ncommands=" + RelpCommand.SYSLOG + "\n").getBytes("US-ASCII");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -184,7 +177,7 @@ public class RelpConnection implements RelpSender {
         this.createSocketChannel();
 
         // send open session message
-        RelpFrameTX relpRequest = new RelpFrameTX(COMMAND_OPEN, OFFER);
+        RelpFrameTX relpRequest = new RelpFrameTX(RelpCommand.OPEN, OFFER);
         RelpBatch connectionOpenBatch = new RelpBatch();
         long reqId = connectionOpenBatch.putRequest(relpRequest);
         this.sendBatch(connectionOpenBatch);
@@ -215,7 +208,7 @@ public class RelpConnection implements RelpSender {
         if (state != RelpConnectionState.OPEN) {
             throw new IllegalStateException("Session is not in open state, can not close.");
         }
-        RelpFrameTX relpRequest = new RelpFrameTX(COMMAND_CLOSE);
+        RelpFrameTX relpRequest = new RelpFrameTX(RelpCommand.CLOSE);
         RelpBatch connectionCloseBatch = new RelpBatch();
         long reqId = connectionCloseBatch.putRequest(relpRequest);
         this.sendBatch(connectionCloseBatch);

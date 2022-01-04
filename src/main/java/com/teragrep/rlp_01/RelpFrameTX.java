@@ -65,7 +65,7 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
      * @param data
      */
     RelpFrameTX(byte[] data) {
-        this(RelpConnection.COMMAND_SYSLOG, data);
+        this(RelpCommand.SYSLOG, data);
     }
 
     RelpFrameTX(String command,
