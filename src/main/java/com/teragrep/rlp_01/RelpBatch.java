@@ -85,8 +85,7 @@ public class RelpBatch {
      @param syslogMessage
      The syslog msg.
      */
-    public long insert( byte[] syslogMessage )
-    {
+    public long insert( byte[] syslogMessage ) {
         RelpFrameTX relpRequest = new RelpFrameTX( syslogMessage );
         return putRequest( relpRequest );
     }
@@ -99,8 +98,7 @@ public class RelpBatch {
      @return id
      The requestId of the newly created request.
      */
-    public long putRequest( RelpFrameTX request )
-    {
+    public long putRequest( RelpFrameTX request ) {
         long id = this.reqID.getNextID();
         this.requests.put( id, request );
         this.workQueue.add( id );
@@ -117,7 +115,8 @@ public class RelpBatch {
     }
 
     public void removeRequest(Long id) {
-        this.requests.remove(id);
+        this.requests.remove( id );
+        this.workQueue.remove( id );
     }
 
     public RelpFrameRX getResponse(Long id) {
@@ -130,20 +129,17 @@ public class RelpBatch {
     }
 
     public void putResponse(Long id, RelpFrameRX response) {
-        this.responses.put(id, response);
+        if( this.requests.containsKey( id ) ) {
+            this.responses.put( id, response );
+        }
     }
 
     public boolean verifyTransaction(Long id) {
-        if (!this.requests.containsKey(id))
-           return false;
-
-        if (this.getResponse(id) == null)
-            return false;
-
-        if (this.responses.get(id).getResponseCode() == 200) {
+        if( this.requests.containsKey( id ) &&
+                this.getResponse( id ) != null &&
+                this.responses.get( id ).getResponseCode() == 200 ) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -177,7 +173,9 @@ public class RelpBatch {
 
     // work queue
     public void retryRequest(Long id) {
-        this.workQueue.add(id);
+        if( this.requests.containsKey( id ) ) {
+            this.workQueue.add( id );
+        }
     }
 
     public int getWorkQueueLength() {
