@@ -62,6 +62,7 @@ public class RelpParser {
     private int frameLength;
     private int frameLengthLeft;
     private ByteBuffer frameData;
+    private final boolean debugEnabled;
 
     private static final int MAX_COMMAND_LENGTH  = 11;
 
@@ -72,6 +73,23 @@ public class RelpParser {
         this.frameCommandString= "";
         this.frameLengthString= "";
         this.frameLength = -1;
+        if( System.getenv( "RELP_DEBUG" ) != null ) {
+            debugEnabled = true;
+        }
+        else {
+            debugEnabled = false;
+        }
+    }
+
+    public RelpParser( boolean debug )
+    {
+        this.state = relpParserState.TXN;
+        this.frameTxnIdString = "";
+        this.frameTxnId = -1;
+        this.frameCommandString = "";
+        this.frameLengthString = "";
+        this.frameLength = -1;
+        debugEnabled = debug;
     }
 
     public boolean isComplete() {
@@ -112,8 +130,8 @@ public class RelpParser {
                 if (b == ' '){
                     frameTxnId = Integer.parseInt(frameTxnIdString);
                     state = relpParserState.COMMAND;
-                    if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpParser> txnId: " + frameTxnId);
+                    if( debugEnabled ) {
+                        System.out.println( "relpParser> txnId: " + frameTxnId );
                     }
                 }
                 else {
@@ -123,8 +141,8 @@ public class RelpParser {
             case COMMAND:
                 if (b == ' '){
                     state = relpParserState.LENGTH;
-                    if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpParser> command: " + frameCommandString);
+                    if( debugEnabled ) {
+                        System.out.println( "relpParser> command: " + frameCommandString );
                     }
                     // Spec constraints.
                     if( frameCommandString.length() > MAX_COMMAND_LENGTH &&
@@ -166,15 +184,15 @@ public class RelpParser {
                     } else {
                         state = relpParserState.DATA;
                     }
-                    if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpParser> length: " + frameLengthString);
+                    if( debugEnabled ) {
+                        System.out.println( "relpParser> length: " + frameLengthString );
                     }
                     if (b == '\n') {
                         if (frameLength == 0) {
                             this.isComplete = true;
                         }
-                        if (System.getenv("RELP_DEBUG") != null) {
-                            System.out.println("relpParser> newline after LENGTH: " + new String(new byte[] {b}));
+                        if( debugEnabled ) {
+                            System.out.println( "relpParser> newline after LENGTH: " + new String( new byte[] {b} ) );
                         }
                     }
                 }
@@ -187,24 +205,24 @@ public class RelpParser {
                 if (frameLengthLeft > 0) {
                     frameData.put(b);
                     frameLengthLeft--;
-                    if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpParser> data b: " + new String(new byte[] {b}) + " left: " + frameLengthLeft);
+                    if( debugEnabled ) {
+                        System.out.println( "relpParser> data b: " + new String( new byte[] {b} ) + " left: " + frameLengthLeft );
                     }
                 }
                 if (frameLengthLeft == 0) {
                     // make ready for consumer
                     frameData.flip();
                     state = relpParserState.NL;
-                    if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpParser> data: " + frameData.toString());
+                    if( debugEnabled ) {
+                        System.out.println( "relpParser> data buffer: " + frameData.toString() );
                     }
                 }
                 break;
             case NL:
                 if (b == '\n'){
                     this.isComplete = true;
-                    if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpParser> newline: " + new String(new byte[] {b}));
+                    if( debugEnabled ) {
+                        System.out.println( "relpParser> newline: " + new String( new byte[] {b} ) );
                     }
                 }
                 else {
