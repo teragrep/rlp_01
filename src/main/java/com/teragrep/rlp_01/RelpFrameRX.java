@@ -70,6 +70,10 @@ public class RelpFrameRX extends AbstractRelpFrame {
 
     }
 
+    public byte[] getData() {
+        return data;
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
