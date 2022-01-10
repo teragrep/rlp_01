@@ -63,6 +63,8 @@ public class RelpParser {
     private int frameLengthLeft;
     private ByteBuffer frameData;
 
+    private static final int MAX_COMMAND_LENGTH  = 11;
+
     public RelpParser() {
         this.state = relpParserState.TXN;
         this.frameTxnIdString = "";
@@ -124,6 +126,16 @@ public class RelpParser {
                     if (System.getenv("RELP_DEBUG") != null) {
                         System.out.println("relpParser> command: " + frameCommandString);
                     }
+                    // Spec constraints.
+                    if( frameCommandString.length() > MAX_COMMAND_LENGTH &&
+                            !frameCommandString.equals(RelpCommand.OPEN) &&
+                            !frameCommandString.equals(RelpCommand.CLOSE) &&
+                            !frameCommandString.equals(RelpCommand.ABORT) &&
+                            !frameCommandString.equals(RelpCommand.SERVER_CLOSE) &&
+                            !frameCommandString.equals(RelpCommand.SYSLOG) &&
+                            !frameCommandString.equals(RelpCommand.RESPONSE)) {
+                        throw new IllegalStateException( "Invalid COMMAND." );
+                    }
                 }
                 else {
                     frameCommandString += new String(new byte[] {b});
@@ -138,11 +150,22 @@ public class RelpParser {
                  */
                 if (b == ' ' || b == '\n'){
                     frameLength = Integer.parseInt(frameLengthString);
+                    // Length of data can't be longer than Long.MAX_VALUE to avoid parsing
+                    // spurious messages.
+                    if( frameLength > 128000 ) {
+                        throw new IllegalStateException( "Invalid DATALEN value." );
+                    }
                     frameLengthLeft = frameLength;
                     // allocate buffer
                     frameData = ByteBuffer.allocateDirect(frameLength);
 
                     state = relpParserState.DATA;
+                    // Length bytes done, move onto next state.
+                    if (frameLength == 0 ) {
+                        state = relpParserState.NL;
+                    } else {
+                        state = relpParserState.DATA;
+                    }
                     if (System.getenv("RELP_DEBUG") != null) {
                         System.out.println("relpParser> length: " + frameLengthString);
                     }
@@ -160,6 +183,7 @@ public class RelpParser {
                 }
                 break;
             case DATA:
+                if(this.isComplete) this.state = relpParserState.NL;
                 if (frameLengthLeft > 0) {
                     frameData.put(b);
                     frameLengthLeft--;
