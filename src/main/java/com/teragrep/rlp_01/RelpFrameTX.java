@@ -151,7 +151,7 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
     @Override
     public String toString() {
         try {
-            return this.transactionNumber + " " + this.command + " " + this.dataLength + (this.data != null ? new String(this.data, "UTF-8") : "");
+            return this.transactionNumber + " " + this.command + " " + this.dataLength + " " + (this.data != null ? new String(this.data, "UTF-8") : "");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
