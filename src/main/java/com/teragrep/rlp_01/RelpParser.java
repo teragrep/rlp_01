@@ -55,21 +55,21 @@ public class RelpParser {
     private boolean isComplete;
 
     // storage
-    private String responseTxnIdString;
-    private int responseTxnId;
-    private String responseCommandString;
-    private String responseLengthString;
-    private int responseLength;
-    private int responseLengthLeft;
-    private ByteBuffer responseData;
+    private String frameTxnIdString;
+    private int frameTxnId;
+    private String frameCommandString;
+    private String frameLengthString;
+    private int frameLength;
+    private int frameLengthLeft;
+    private ByteBuffer frameData;
 
     public RelpParser() {
         this.state = relpParserState.TXN;
-        this.responseTxnIdString = "";
-        this.responseTxnId = -1;
-        this.responseCommandString= "";
-        this.responseLengthString= "";
-        this.responseLength = -1;
+        this.frameTxnIdString = "";
+        this.frameTxnId = -1;
+        this.frameCommandString= "";
+        this.frameLengthString= "";
+        this.frameLength = -1;
     }
 
     public boolean isComplete() {
@@ -77,19 +77,19 @@ public class RelpParser {
     }
 
     public int getTxnId() {
-        return this.responseTxnId;
+        return this.frameTxnId;
     }
 
     public String getCommandString() {
-        return this.responseCommandString;
+        return this.frameCommandString;
     }
 
     public int getLength() {
-        return this.responseLength;
+        return this.frameLength;
     }
 
     public ByteBuffer getData() {
-        return this.responseData;
+        return this.frameData;
     }
 
     public relpParserState getState() { return this.state; }
@@ -108,25 +108,25 @@ public class RelpParser {
         switch (this.state) {
             case TXN:
                 if (b == ' '){
-                    responseTxnId = Integer.parseInt(responseTxnIdString);
+                    frameTxnId = Integer.parseInt(frameTxnIdString);
                     state = relpParserState.COMMAND;
                     if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpParser> txnId: " + responseTxnId);
+                        System.out.println("relpParser> txnId: " + frameTxnId);
                     }
                 }
                 else {
-                    responseTxnIdString += new String(new byte[] {b});
+                    frameTxnIdString += new String(new byte[] {b});
                 }
                 break;
             case COMMAND:
                 if (b == ' '){
                     state = relpParserState.LENGTH;
                     if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpParser> command: " + responseCommandString);
+                        System.out.println("relpParser> command: " + frameCommandString);
                     }
                 }
                 else {
-                    responseCommandString += new String(new byte[] {b});
+                    frameCommandString += new String(new byte[] {b});
                 }
                 break;
             case LENGTH:
@@ -137,17 +137,17 @@ public class RelpParser {
                  HEADER = TXNR SP COMMAND SP DATALEN LF; and LF is for relpParserState.NL
                  */
                 if (b == ' ' || b == '\n'){
-                    responseLength = Integer.parseInt(responseLengthString);
-                    responseLengthLeft = responseLength;
+                    frameLength = Integer.parseInt(frameLengthString);
+                    frameLengthLeft = frameLength;
                     // allocate buffer
-                    responseData = ByteBuffer.allocateDirect(responseLength);
+                    frameData = ByteBuffer.allocateDirect(frameLength);
 
                     state = relpParserState.DATA;
                     if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpParser> length: " + responseLengthString);
+                        System.out.println("relpParser> length: " + frameLengthString);
                     }
                     if (b == '\n') {
-                        if (responseLength == 0) {
+                        if (frameLength == 0) {
                             this.isComplete = true;
                         }
                         if (System.getenv("RELP_DEBUG") != null) {
@@ -156,23 +156,23 @@ public class RelpParser {
                     }
                 }
                 else {
-                    responseLengthString += new String(new byte[] {b});
+                    frameLengthString += new String(new byte[] {b});
                 }
                 break;
             case DATA:
-                if (responseLengthLeft > 0) {
-                    responseData.put(b);
-                    responseLengthLeft--;
+                if (frameLengthLeft > 0) {
+                    frameData.put(b);
+                    frameLengthLeft--;
                     if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpParser> data b: " + new String(new byte[] {b}) + " left: " + responseLengthLeft);
+                        System.out.println("relpParser> data b: " + new String(new byte[] {b}) + " left: " + frameLengthLeft);
                     }
                 }
-                if (responseLengthLeft == 0) {
+                if (frameLengthLeft == 0) {
                     // make ready for consumer
-                    responseData.flip();
+                    frameData.flip();
                     state = relpParserState.NL;
                     if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpParser> data: " + responseData.toString());
+                        System.out.println("relpParser> data: " + frameData.toString());
                     }
                 }
                 break;
@@ -184,7 +184,7 @@ public class RelpParser {
                     }
                 }
                 else {
-                    throw new IllegalStateException("relp response parsing failure");
+                    throw new IllegalStateException("relp frame parsing failure");
                 }
                 break;
             default:
