@@ -185,9 +185,5 @@ public class RelpBatch {
     public Long popWorkQueue() {
         return this.workQueue.pop();
     }
-
-    public boolean isPending(Long id) {
-        return this.workQueue.contains(id) && this.requests.containsKey(id);
-    }
 }
  
