@@ -69,11 +69,7 @@ public class RelpWindow {
         return this.pending.get(txnId);
     }
 
-    public void removePending(Integer txnId) {
-        if (this.pending.containsKey(txnId)) {
-            this.pending.remove(txnId);
-        }
-    }
+    public void removePending(Integer txnId) { this.pending.remove(txnId); }
 
     public int size() {
         return this.pending.size();

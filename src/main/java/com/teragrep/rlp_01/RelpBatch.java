@@ -115,10 +115,8 @@ public class RelpBatch {
     }
 
     public void removeRequest(Long id) {
-        if(this.requests.containsKey(id) && this.workQueue.contains(id)) {
-            this.requests.remove( id );
-            this.workQueue.remove( id );
-        }
+        this.requests.remove( id );
+        this.workQueue.remove( id );
     }
 
     public RelpFrameRX getResponse(Long id) {
@@ -169,10 +167,8 @@ public class RelpBatch {
     }
 
     public void removeTransaction(Long id) {
-        if(this.requests.containsKey(id) && this.responses.containsKey(id)) {
-            this.responses.remove(id);
-            this.requests.remove(id);
-        }
+        this.responses.remove(id);
+        this.requests.remove(id);
     }
 
     // work queue
