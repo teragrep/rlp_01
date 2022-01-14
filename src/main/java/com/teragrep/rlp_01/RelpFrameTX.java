@@ -54,6 +54,7 @@ import java.nio.ReadOnlyBufferException;
 import java.util.StringTokenizer;
 
 /**
+ * This is the frame for transmitting RELP messages.
  * A RELP message as defined in the spec.:
  * Binary PAYLOAD (DATA in the BNF) is supported.
  * 
@@ -68,8 +69,7 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
         this(RelpCommand.SYSLOG, data);
     }
 
-    RelpFrameTX(String command,
-                byte[] data) {
+    RelpFrameTX(String command, byte[] data) {
         super(command, data != null ? data.length : 0);
         this.data = data;
     }
@@ -86,10 +86,8 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("RelpFrameTX.write> entry");
         }
-        // HEADER DATA TRAILER
         putHeader(dst);        
         putData(dst);
-        // put TRAILER
         dst.put((byte)'\n');
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("RelpFrameTX.write> exit");
@@ -114,6 +112,13 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
         return txn + sp1 + command + sp2 + length + sp3 + data + trailer;
     }
 
+    /**
+     Writes the DATA part of the RELP message into the given buffer
+     with a space byte before the actual data.
+
+     @param dst
+     The buffer to write the data into.
+     */
     private void putData(ByteBuffer dst) {
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("RelpFrameTX.putData> entry");
@@ -148,6 +153,9 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
         }
     }
 
+    /**
+     Override for toString method. Returns the entire RELP message formatted with spaces.
+     */
     @Override
     public String toString() {
         try {

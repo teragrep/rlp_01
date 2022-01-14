@@ -74,6 +74,10 @@ public class RelpFrameRX extends AbstractRelpFrame {
         return data;
     }
 
+    /**
+     An override for the toString() method. Builds a string (including spaces and
+     newline trailer at the end) from the RELP response frame.
+     */
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();

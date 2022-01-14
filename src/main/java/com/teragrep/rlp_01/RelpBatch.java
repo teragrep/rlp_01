@@ -60,13 +60,12 @@ import java.util.TreeMap;
  */
 public class RelpBatch {
 
-    // requestId for user of the window
     private requestID reqID;
 
     private TreeMap<Long, RelpFrameTX> requests;
     private TreeMap<Long, RelpFrameRX> responses;
 
-    // not processed queue, for asynchronous use
+    // Not processed queue, for asynchronous use.
     private LinkedList<Long> workQueue;
 
     public RelpBatch() {

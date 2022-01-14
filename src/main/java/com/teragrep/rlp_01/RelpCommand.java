@@ -1,5 +1,9 @@
 package com.teragrep.rlp_01;
 
+/**
+ Simple class to contain all the known command types.
+ */
+// TODO change to ENUM
 public class RelpCommand {
     public final static String OPEN            = "open";
     public final static String CLOSE           = "close";

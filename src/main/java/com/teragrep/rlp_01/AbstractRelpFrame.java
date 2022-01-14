@@ -76,11 +76,29 @@ public abstract class AbstractRelpFrame {
      */
     protected byte[] data;
 
+    /**
+     Constructor.
+
+     @param command
+     Type of command (e.g. "open", "syslog", etc.).
+     @param dataLength
+     Length of the data in the message.
+     */
     protected AbstractRelpFrame(String command, int dataLength) {
         this.command = command;
         this.dataLength = dataLength;
     }
 
+    /**
+     Constructor.
+
+     @param txID
+     The transaction ID.
+     @param command
+     Type of command (list of possibilities in RelpCommand.java).
+     @param dataLength
+     Length of the data in the message.
+     */
     protected AbstractRelpFrame(int txID, String command, int dataLength) {
         this.transactionNumber = txID;
         this.command = command;
@@ -99,9 +117,6 @@ public abstract class AbstractRelpFrame {
         this.transactionNumber = txID;
     }
 
-    /*
-     TODO support US-ASCII encodings as well, relp is after all a binary protocol, however in case of librelp it's ascii
-     */
     protected String readString(ByteBuffer src, int dataLength) {
         if (dataLength > 0) {
             byte[] bytes = new byte[dataLength];

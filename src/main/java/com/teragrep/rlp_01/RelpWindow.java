@@ -49,7 +49,7 @@ package com.teragrep.rlp_01;
 import java.util.TreeMap;
 
 public class RelpWindow {
-    // mapping between connection's txnId and window's requestId
+    // Mapping between connection's txnId and window's requestId
     private TreeMap<Integer, Long> pending;
 
     public RelpWindow() {

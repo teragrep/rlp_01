@@ -48,13 +48,15 @@ package com.teragrep.rlp_01;
 
 import java.nio.ByteBuffer;
 
+/**
+ A hand-made parser to process RELP messages.
+ */
 public class RelpParser {
 
     // perhaps antlr4 would be better for this and not some hand made parser
     private relpParserState state;
     private boolean isComplete;
 
-    // storage
     private String frameTxnIdString;
     private int frameTxnId;
     private String frameCommandString;
@@ -122,8 +124,14 @@ public class RelpParser {
         NL
     }
 
-    // TODO add SPEC constraints to parsing and throw exceptions if they are breached
+    /**
+     Parse the message byte-by-byte and enter each byte as a string to the proper
+     storage based on the state of the parser.
 
+     @param b
+     Byte to be parsed.
+     */
+    // TODO add SPEC constraints to parsing and throw exceptions if they are breached
     public void parse(byte b) {
         switch (this.state) {
             case TXN:
@@ -174,7 +182,6 @@ public class RelpParser {
                         throw new IllegalStateException( "Invalid DATALEN value." );
                     }
                     frameLengthLeft = frameLength;
-                    // allocate buffer
                     frameData = ByteBuffer.allocateDirect(frameLength);
 
                     state = relpParserState.DATA;
@@ -202,6 +209,8 @@ public class RelpParser {
                 break;
             case DATA:
                 if(this.isComplete) this.state = relpParserState.NL;
+                // Parser will only read the given length of data. If the message
+                // gives data bigger than the frameLength, bad luck for them.
                 if (frameLengthLeft > 0) {
                     frameData.put(b);
                     frameLengthLeft--;
@@ -220,6 +229,7 @@ public class RelpParser {
                 break;
             case NL:
                 if (b == '\n'){
+                    // RELP message always ends with a newline byte.
                     this.isComplete = true;
                     if( debugEnabled ) {
                         System.out.println( "relpParser> newline: " + new String( new byte[] {b} ) );

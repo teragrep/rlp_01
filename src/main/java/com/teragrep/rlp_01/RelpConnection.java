@@ -201,6 +201,11 @@ public class RelpConnection implements RelpSender {
         this.state = RelpConnectionState.CLOSED;
     }
 
+    /**
+     Sends a "close session" command to disconnect from the session by creating a "close session"
+     request. (Similar to connect())
+
+     */
     public boolean disconnect() throws IOException, IllegalStateException, TimeoutException {
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("relpConnection.disconnect> entry");
@@ -242,6 +247,13 @@ public class RelpConnection implements RelpSender {
         }
     }
 
+    /**
+     Processes all the jobs in the workQueue of the given batch by iterating
+     through each requestId, retrieving the request frame associated with the id,
+     setting a linearly incremented txID and sending the request to server. Finally
+     calls readAcks to make sure the requests went through and received a response.
+
+     */
     private void sendBatch(RelpBatch relpBatch)  throws IOException, TimeoutException, IllegalStateException {
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("relpConnection.sendBatch> entry with wq len " + relpBatch.getWorkQueueLength());
@@ -428,37 +440,36 @@ public class RelpConnection implements RelpSender {
             System.out.println("relpConnection.createSocketChannel> entry");
         }
         if (this.poll != null && this.poll.isOpen()) {
-            // invalidate all selection key instances in case they were open
+            // Invalidate all selection key instances in case they were open
             this.poll.close();
         }
-        // a fresh start
+
         this.poll = Selector.open();
 
-        // create socketChannel
         this.socketChannel = SocketChannel.open();
-        // make sure our poll will only block
+        // Make sure our poll will only block
         this.socketChannel.configureBlocking(false);
-        // poll only for connect
+        // Poll only for connect
         SelectionKey key = this.socketChannel.register(this.poll, SelectionKey.OP_CONNECT);
-        // async connect
+        // Async connect
         this.socketChannel.connect(new InetSocketAddress(this.hostname, this.port));
-        // poll for connect
+        // Poll for connect
         boolean notConnected = true;
         while (notConnected) {
             int nReady = this.poll.select(this.connectionTimeout);
-            // woke up without anything to do
+            // Woke up without anything to do
             if (nReady == 0) {
                 throw new TimeoutException("connection timed out");
             }
-            // it would be possible to skip the whole iterator but we want to make sure if something else than connect
-            // fires then it will be discarded
+            // It would be possible to skip the whole iterator, but we want to make sure if something else than connect
+            // fires then it will be discarded.
             Set<SelectionKey> polledEvents = this.poll.selectedKeys();
             Iterator<SelectionKey> eventIter = polledEvents.iterator();
             while (eventIter.hasNext()) {
                 SelectionKey currentKey = eventIter.next();
                 if (currentKey.isConnectable()) {
                     if (this.socketChannel.finishConnect()) {
-                        // connection established
+                        // Connection established
                         notConnected = false;
                         if (System.getenv("RELP_DEBUG") != null) {
                             System.out.println("relpConnection> established");
@@ -473,7 +484,7 @@ public class RelpConnection implements RelpSender {
                 eventIter.remove();
             }
         }
-        // no need to be longer interested in connect
+        // No need to be longer interested in connect.
         key.interestOps(key.interestOps() & ~SelectionKey.OP_CONNECT);
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("relpConnection.createSocketChannel> exit");
