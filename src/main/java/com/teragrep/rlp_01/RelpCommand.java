@@ -18,23 +18,14 @@
 package com.teragrep.rlp_01;
 
 /**
- * Generates RELP transaction identifiers. Increases monotonically and wraps
- * around at 999 999 999.
- * 
+ Simple class to contain all the known command types.
  */
-public class TxID {
-
-    private int transactionIdentifier;
-    public int MAX_ID = 999999999;
-
-    TxID() {
-        this.transactionIdentifier = 1;
-    }
-
-    int getNextTransactionIdentifier() {
-        if( transactionIdentifier == MAX_ID ) {
-            transactionIdentifier = 1;
-        }
-        return transactionIdentifier++;
-    }
+// TODO change to ENUM
+public class RelpCommand {
+    public final static String OPEN            = "open";
+    public final static String CLOSE           = "close";
+    public final static String ABORT           = "abort";
+    public final static String SERVER_CLOSE    = "serverclose";
+    public final static String SYSLOG          = "syslog";
+    public final static String RESPONSE        = "rsp";
 }

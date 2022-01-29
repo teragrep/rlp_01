@@ -1,47 +1,18 @@
 /*
- * Java Reliable Event Logging Protocol Library RLP-01
- * Copyright (C) 2021  Suomen Kanuuna Oy
- *  
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *  
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *  
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *  
- *  
- * Additional permission under GNU Affero General Public License version 3
- * section 7
- *  
- * If you modify this Program, or any covered work, by linking or combining it 
- * with other code, such other code is not for that reason alone subject to any
- * of the requirements of the GNU Affero GPL version 3 as long as this Program
- * is the same Program as licensed from Suomen Kanuuna Oy without any additional
- * modifications.
- *  
- * Supplemented terms under GNU Affero General Public License version 3
- * section 7
- *  
- * Origin of the software must be attributed to Suomen Kanuuna Oy. Any modified
- * versions must be marked as "Modified version of" The Program.
- *  
- * Names of the licensors and authors may not be used for publicity purposes.
- *  
- * No rights are granted for use of trade names, trademarks, or service marks
- * which are in The Program if any.
- *  
- * Licensee must indemnify licensors and authors for any liability that these
- * contractual assumptions impose on licensors and authors.
- *  
- * To the extent this program is licensed as part of the Commercial versions of
- * Teragrep, the applicable Commercial License may apply to this file if you as
- * a licensee so wish it.
+   Java Reliable Event Logging Protocol Library RLP-01
+   Copyright (C) 2021, 2022  Suomen Kanuuna Oy
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
  */
 
 package com.teragrep.rlp_01;
@@ -68,18 +39,11 @@ public class RelpConnection implements RelpSender {
     private ByteBuffer preAllocatedTXBuffer;
     private static final int MAX_COMMAND_LENGTH  = 11;
 
-    public final static String COMMAND_OPEN            = "open";
-    public final static String COMMAND_CLOSE           = "close";
-    public final static String COMMAND_ABORT           = "abort";
-    public final static String COMMAND_SERVER_CLOSE    = "serverclose";
-    public final static String COMMAND_SYSLOG          = "syslog";
-    public final static String COMMAND_RESPONSE        = "rsp";
-
     private final static byte[] OFFER;
     
     static {
         try {
-            OFFER = ("\nrelp_version=0\nrelp_software=RLP-01\ncommands=" + COMMAND_SYSLOG + "\n").getBytes("US-ASCII");
+            OFFER = ("\nrelp_version=0\nrelp_software=RLP-01\ncommands=" + RelpCommand.SYSLOG + "\n").getBytes("US-ASCII");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -184,7 +148,7 @@ public class RelpConnection implements RelpSender {
         this.createSocketChannel();
 
         // send open session message
-        RelpRequest relpRequest = new RelpRequest(COMMAND_OPEN, OFFER);
+        RelpFrameTX relpRequest = new RelpFrameTX(RelpCommand.OPEN, OFFER);
         RelpBatch connectionOpenBatch = new RelpBatch();
         long reqId = connectionOpenBatch.putRequest(relpRequest);
         this.sendBatch(connectionOpenBatch);
@@ -208,6 +172,11 @@ public class RelpConnection implements RelpSender {
         this.state = RelpConnectionState.CLOSED;
     }
 
+    /**
+     Sends a "close session" command to disconnect from the session by creating a "close session"
+     request. (Similar to connect())
+
+     */
     public boolean disconnect() throws IOException, IllegalStateException, TimeoutException {
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("relpConnection.disconnect> entry");
@@ -215,12 +184,12 @@ public class RelpConnection implements RelpSender {
         if (state != RelpConnectionState.OPEN) {
             throw new IllegalStateException("Session is not in open state, can not close.");
         }
-        RelpRequest relpRequest = new RelpRequest(COMMAND_CLOSE);
+        RelpFrameTX relpRequest = new RelpFrameTX(RelpCommand.CLOSE);
         RelpBatch connectionCloseBatch = new RelpBatch();
         long reqId = connectionCloseBatch.putRequest(relpRequest);
         this.sendBatch(connectionCloseBatch);
         boolean closeSuccess = false;
-        RelpResponse closeResponse = connectionCloseBatch.getResponse(reqId);
+        RelpFrameRX closeResponse = connectionCloseBatch.getResponse(reqId);
         if (closeResponse.dataLength == 0) {
             closeSuccess = true;
         }
@@ -249,12 +218,19 @@ public class RelpConnection implements RelpSender {
         }
     }
 
+    /**
+     Processes all the jobs in the workQueue of the given batch by iterating
+     through each requestId, retrieving the request frame associated with the id,
+     setting a linearly incremented txID and sending the request to server. Finally
+     calls readAcks to make sure the requests went through and received a response.
+
+     */
     private void sendBatch(RelpBatch relpBatch)  throws IOException, TimeoutException, IllegalStateException {
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("relpConnection.sendBatch> entry with wq len " + relpBatch.getWorkQueueLength());
         }
         // send a batch of requests..
-        RelpRequest relpRequest;
+        RelpFrameTX relpRequest;
 
         while (relpBatch.getWorkQueueLength() > 0) {
             long reqId = relpBatch.popWorkQueue();
@@ -343,7 +319,7 @@ public class RelpConnection implements RelpSender {
                         int txnId = parser.getTxnId();
                         if (window.isPending(txnId)) {
                             Long requestId = window.getPending(txnId);
-                            RelpResponse response = new RelpResponse(
+                            RelpFrameRX response = new RelpFrameRX(
                                     parser.getTxnId(),
                                     parser.getCommandString(),
                                     parser.getLength(),
@@ -370,7 +346,7 @@ public class RelpConnection implements RelpSender {
         }
     }
 
-    private void sendRelpRequestAsync(RelpRequest relpRequest) throws IOException, TimeoutException {
+    private void sendRelpRequestAsync(RelpFrameTX relpRequest) throws IOException, TimeoutException {
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("relpConnection.sendRelpRequestAsync> entry");
         }
@@ -435,37 +411,36 @@ public class RelpConnection implements RelpSender {
             System.out.println("relpConnection.createSocketChannel> entry");
         }
         if (this.poll != null && this.poll.isOpen()) {
-            // invalidate all selection key instances in case they were open
+            // Invalidate all selection key instances in case they were open
             this.poll.close();
         }
-        // a fresh start
+
         this.poll = Selector.open();
 
-        // create socketChannel
         this.socketChannel = SocketChannel.open();
-        // make sure our poll will only block
+        // Make sure our poll will only block
         this.socketChannel.configureBlocking(false);
-        // poll only for connect
+        // Poll only for connect
         SelectionKey key = this.socketChannel.register(this.poll, SelectionKey.OP_CONNECT);
-        // async connect
+        // Async connect
         this.socketChannel.connect(new InetSocketAddress(this.hostname, this.port));
-        // poll for connect
+        // Poll for connect
         boolean notConnected = true;
         while (notConnected) {
             int nReady = this.poll.select(this.connectionTimeout);
-            // woke up without anything to do
+            // Woke up without anything to do
             if (nReady == 0) {
                 throw new TimeoutException("connection timed out");
             }
-            // it would be possible to skip the whole iterator but we want to make sure if something else than connect
-            // fires then it will be discarded
+            // It would be possible to skip the whole iterator, but we want to make sure if something else than connect
+            // fires then it will be discarded.
             Set<SelectionKey> polledEvents = this.poll.selectedKeys();
             Iterator<SelectionKey> eventIter = polledEvents.iterator();
             while (eventIter.hasNext()) {
                 SelectionKey currentKey = eventIter.next();
                 if (currentKey.isConnectable()) {
                     if (this.socketChannel.finishConnect()) {
-                        // connection established
+                        // Connection established
                         notConnected = false;
                         if (System.getenv("RELP_DEBUG") != null) {
                             System.out.println("relpConnection> established");
@@ -480,7 +455,7 @@ public class RelpConnection implements RelpSender {
                 eventIter.remove();
             }
         }
-        // no need to be longer interested in connect
+        // No need to be longer interested in connect.
         key.interestOps(key.interestOps() & ~SelectionKey.OP_CONNECT);
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("relpConnection.createSocketChannel> exit");
