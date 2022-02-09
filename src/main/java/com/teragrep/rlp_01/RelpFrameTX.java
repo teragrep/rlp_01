@@ -36,16 +36,16 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
      * 
      * @param data
      */
-    RelpFrameTX(byte[] data) {
+    public RelpFrameTX(byte[] data) {
         this(RelpCommand.SYSLOG, data);
     }
 
-    RelpFrameTX(String command, byte[] data) {
+    public RelpFrameTX(String command, byte[] data) {
         super(command, data != null ? data.length : 0);
         this.data = data;
     }
 
-    RelpFrameTX(String command) {
+    public RelpFrameTX(String command) {
         this(command, null);
     }
 

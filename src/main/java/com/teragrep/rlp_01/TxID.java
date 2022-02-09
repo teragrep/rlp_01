@@ -27,7 +27,7 @@ public class TxID {
     private int transactionIdentifier;
     public int MAX_ID = 999999999;
 
-    TxID() {
+    public TxID() {
         this.transactionIdentifier = 1;
     }
 
