@@ -31,7 +31,7 @@ public class RelpFrameRX extends AbstractRelpFrame {
      * PAYLOAD
      */
 
-    RelpFrameRX(int txID, String command, int dataLength, ByteBuffer src) {
+    public RelpFrameRX(int txID, String command, int dataLength, ByteBuffer src) {
         super(txID, command, dataLength);
         this.data = new byte[src.remaining()];
         src.get(this.data);
