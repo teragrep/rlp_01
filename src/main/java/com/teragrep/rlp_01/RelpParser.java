@@ -147,9 +147,9 @@ public class RelpParser {
                  */
                 if (b == ' ' || b == '\n'){
                     frameLength = Integer.parseInt(frameLengthString);
-                    // Length of data can't be longer than Long.MAX_VALUE to avoid parsing
+                    // Length of data can't be longer than Integer.MAX_VALUE to avoid parsing
                     // spurious messages.
-                    if( frameLength > 128000 ) {
+                    if( frameLength > Integer.MAX_VALUE ) {
                         throw new IllegalStateException( "Invalid DATALEN value." );
                     }
                     frameLengthLeft = frameLength;
