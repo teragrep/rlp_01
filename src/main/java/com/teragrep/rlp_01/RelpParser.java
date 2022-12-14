@@ -102,12 +102,15 @@ public class RelpParser {
      @param b
      Byte to be parsed.
      */
-    // TODO add SPEC constraints to parsing and throw exceptions if they are breached
     public void parse(byte b) {
         switch (this.state) {
             case TXN:
                 if (b == ' '){
                     frameTxnId = Integer.parseInt(frameTxnIdString);
+                    if (frameTxnId < 0) {
+                        throw new IllegalArgumentException("TXNR must " +
+                                "be >= 0");
+                    }
                     state = relpParserState.COMMAND;
                     if( debugEnabled ) {
                         System.out.println( "relpParser> txnId: " + frameTxnId );
@@ -145,17 +148,18 @@ public class RelpParser {
                  but sometimes librelp follows:
                  HEADER = TXNR SP COMMAND SP DATALEN LF; and LF is for relpParserState.NL
                  */
-                if (b == ' ' || b == '\n'){
+                if (b == ' ' || b == '\n') {
+
                     frameLength = Integer.parseInt(frameLengthString);
-                    // Length of data can't be longer than Integer.MAX_VALUE to avoid parsing
-                    // spurious messages.
-                    if( frameLength > Integer.MAX_VALUE ) {
-                        throw new IllegalStateException( "Invalid DATALEN value." );
+
+                    if (frameLength < 0) {
+                        throw new IllegalArgumentException("DATALEN must be " +
+                                ">= 0");
                     }
+
                     frameLengthLeft = frameLength;
                     frameData = ByteBuffer.allocateDirect(frameLength);
 
-                    state = relpParserState.DATA;
                     // Length bytes done, move onto next state.
                     if (frameLength == 0 ) {
                         state = relpParserState.NL;
