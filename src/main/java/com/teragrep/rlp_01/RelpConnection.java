@@ -18,12 +18,7 @@
 package com.teragrep.rlp_01;
 
 import java.io.*;
-import java.net.*;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
-import java.util.*;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -36,8 +31,9 @@ public class RelpConnection implements RelpSender {
 
     private int rxBufferSize;
     private int txBufferSize;
-    private ByteBuffer preAllocatedTXBuffer;
+    private final ByteBuffer preAllocatedTXBuffer;
     private static final int MAX_COMMAND_LENGTH  = 11;
+    private final RelpClientSocket relpClientSocket;
 
     private final static byte[] OFFER;
     
@@ -55,38 +51,29 @@ public class RelpConnection implements RelpSender {
         COMMIT
     }
 
-    
-    private String hostname;
-    private int port;
-    private SocketChannel socketChannel;
-    private Selector poll;
-
-    private int readTimeout = 0;
-    private int writeTimeout = 0;
-    private int connectionTimeout = 0;
 
     public int getReadTimeout() {
-        return this.readTimeout;
+        return relpClientSocket.getReadTimeout();
     }
 
     public void setReadTimeout(int readTimeout) {
-        this.readTimeout = readTimeout;
+        relpClientSocket.setReadTimeout(readTimeout);
     }
 
     public int getWriteTimeout() {
-        return this.writeTimeout;
+        return relpClientSocket.getWriteTimeout();
     }
 
     public void setWriteTimeout(int writeTimeout) {
-        this.writeTimeout = writeTimeout;
+        relpClientSocket.setWriteTimeout(writeTimeout);
     }
 
 	public int getConnectionTimeout() {
-		return connectionTimeout;
+		return relpClientSocket.getConnectionTimeout();
 	}
 
 	public void setConnectionTimeout(int timeout) {
-		this.connectionTimeout = timeout;
+		relpClientSocket.setConnectionTimeout(timeout);
 	}
 
 	public int getRxBufferSize() {
@@ -122,6 +109,7 @@ public class RelpConnection implements RelpSender {
 
         this.state = RelpConnectionState.CLOSED;
         this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(this.txBufferSize);
+        this.relpClientSocket = new RelpClientPlainSocket();
     }
 
     
@@ -143,9 +131,7 @@ public class RelpConnection implements RelpSender {
         this.txID = new TxID();
         this.window = new RelpWindow();
 
-        this.hostname = hostname;
-        this.port = port;
-        this.createSocketChannel();
+        this.relpClientSocket.open(hostname, port);
 
         // send open session message
         RelpFrameTX relpRequest = new RelpFrameTX(RelpCommand.OPEN, OFFER);
@@ -164,7 +150,7 @@ public class RelpConnection implements RelpSender {
 
     public void tearDown()  {
         try {
-            this.socketChannel.close();
+            relpClientSocket.close();
         }
         catch (IOException e) {
             ; // don't care
@@ -197,7 +183,7 @@ public class RelpConnection implements RelpSender {
             System.out.println("relpConnection.disconnect> exit with: " + closeSuccess);
         }
         if(closeSuccess){
-            this.socketChannel.close();
+            relpClientSocket.close();
             this.state = RelpConnectionState.CLOSED;
         }
         return closeSuccess;
@@ -260,41 +246,16 @@ public class RelpConnection implements RelpSender {
 
         RelpParser parser = null;
 
-        SelectionKey key = this.socketChannel.register(this.poll, SelectionKey.OP_READ);
-        boolean notComplete;
-        if (this.window.size() > 0) {
-            notComplete = true;
-        }
-        else {
-            notComplete = false;
-        }
+        int readBytes;
 
-        int readBytes = -1;
+        boolean notComplete = this.window.size() > 0;
 
         while (notComplete) {
             if (System.getenv("RELP_DEBUG") != null) {
                 System.out.println("relpConnection.readAcks> need to read");
             }
 
-            int nReady = poll.select(this.readTimeout);
-            if (nReady == 0) {
-                throw new TimeoutException("read timed out");
-            }
-            Set<SelectionKey> polledEvents = this.poll.selectedKeys();
-            Iterator<SelectionKey> eventIter = polledEvents.iterator();
-            while (eventIter.hasNext()) {
-                SelectionKey currentKey = eventIter.next();
-                if (currentKey.isReadable()) {
-                    if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpConnection.readAcks> became readable");
-                    }
-                    readBytes = socketChannel.read(byteBuffer);
-                }
-                eventIter.remove();
-            }
-            if (readBytes == -1) {
-                throw new IOException("read failed");
-            }
+            readBytes = relpClientSocket.read(byteBuffer);
 
             if (System.getenv("RELP_DEBUG") != null) {
                 System.out.println("relpConnection.readAcks> read bytes: " + readBytes);
@@ -340,7 +301,7 @@ public class RelpConnection implements RelpSender {
             // everything should be read by now
             byteBuffer.compact();
         }
-        key.interestOps(key.interestOps() & ~SelectionKey.OP_READ);
+
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("relpConnection.readAcks> exit");
         }
@@ -368,97 +329,10 @@ public class RelpConnection implements RelpSender {
         relpRequest.write(byteBuffer);
 
         byteBuffer.flip();
-        SelectionKey key = this.socketChannel.register(this.poll, SelectionKey.OP_WRITE);
-        if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("relpConnection.sendRelpRequestAsync> need to write: " + byteBuffer.hasRemaining());
-        }
-        while (byteBuffer.hasRemaining()) {
-            int nReady = poll.select(this.writeTimeout);
-            if (nReady == 0) {
-                throw new TimeoutException("write timed out");
-            }
-            Set<SelectionKey> polledEvents = this.poll.selectedKeys();
-            Iterator<SelectionKey> eventIter = polledEvents.iterator();
-            while (eventIter.hasNext()) {
-                SelectionKey currentKey = eventIter.next();
-                if (currentKey.isWritable()) {
-                    if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpConnection.sendRelpRequestAsync> became writable");
-                    }
-                    this.socketChannel.write(byteBuffer);
-                }
-                eventIter.remove();
-            }
-            if (System.getenv("RELP_DEBUG") != null) {
-                System.out.println("relpConnection.sendRelpRequestAsync> still need to write: "
-                        + byteBuffer.hasRemaining());
-            }
-        }
+        relpClientSocket.write(byteBuffer);
         byteBuffer.clear();
-        key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
         if (System.getenv("RELP_DEBUG") != null) {
             System.out.println("relpConnection.sendRelpRequestAsync> exit");
-        }
-    }
-    
-    /**
-     * Creates a new SocketChannel to the RELP server.
-     * 
-     * @throws IOException
-     */
-    private void createSocketChannel() throws IOException, TimeoutException {
-        if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("relpConnection.createSocketChannel> entry");
-        }
-        if (this.poll != null && this.poll.isOpen()) {
-            // Invalidate all selection key instances in case they were open
-            this.poll.close();
-        }
-
-        this.poll = Selector.open();
-
-        this.socketChannel = SocketChannel.open();
-        // Make sure our poll will only block
-        this.socketChannel.configureBlocking(false);
-        // Poll only for connect
-        SelectionKey key = this.socketChannel.register(this.poll, SelectionKey.OP_CONNECT);
-        // Async connect
-        this.socketChannel.connect(new InetSocketAddress(this.hostname, this.port));
-        // Poll for connect
-        boolean notConnected = true;
-        while (notConnected) {
-            int nReady = this.poll.select(this.connectionTimeout);
-            // Woke up without anything to do
-            if (nReady == 0) {
-                throw new TimeoutException("connection timed out");
-            }
-            // It would be possible to skip the whole iterator, but we want to make sure if something else than connect
-            // fires then it will be discarded.
-            Set<SelectionKey> polledEvents = this.poll.selectedKeys();
-            Iterator<SelectionKey> eventIter = polledEvents.iterator();
-            while (eventIter.hasNext()) {
-                SelectionKey currentKey = eventIter.next();
-                if (currentKey.isConnectable()) {
-                    if (this.socketChannel.finishConnect()) {
-                        // Connection established
-                        notConnected = false;
-                        if (System.getenv("RELP_DEBUG") != null) {
-                            System.out.println("relpConnection> established");
-                            try {
-                                Thread.sleep(1 * 1000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-                eventIter.remove();
-            }
-        }
-        // No need to be longer interested in connect.
-        key.interestOps(key.interestOps() & ~SelectionKey.OP_CONNECT);
-        if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("relpConnection.createSocketChannel> exit");
         }
     }
 }
