@@ -109,7 +109,10 @@ public class RelpConnection implements RelpSender {
 
         this.state = RelpConnectionState.CLOSED;
         this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(this.txBufferSize);
-        this.relpClientSocket = new RelpClientPlainSocket();
+
+        // FIXME parametrize
+        //this.relpClientSocket = new RelpClientPlainSocket();
+        this.relpClientSocket = new RelpClientTlsSocket();
     }
 
     
