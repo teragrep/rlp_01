@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.security.GeneralSecurityException;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
@@ -32,7 +31,7 @@ import tlschannel.NeedsReadException;
 import tlschannel.NeedsWriteException;
 import tlschannel.TlsChannel;
 
-import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 
 public class RelpClientTlsSocket extends RelpClientSocket {
     private int readTimeout = 0;
@@ -73,26 +72,15 @@ public class RelpClientTlsSocket extends RelpClientSocket {
     private SocketChannel socketChannel;
     private Selector selector;
 
-
-    // TODO remove, use engine as parameter
-    SSLContext sslContext;
+    private final SSLEngine sslEngine;
 
     private TlsChannel tlsChannel = null;
 
-    RelpClientTlsSocket() {
-        try {
+    RelpClientTlsSocket(SSLEngine sslEngine) {
+        this.sslEngine = sslEngine;
 
-            // FIXME parametrize
-            sslContext = SSLContextFactory.authenticatedContext(
-                    "keystore.jks",
-                    "changeit",
-                    "TLSv1.3"
-            );
-        }
-        catch (GeneralSecurityException | IOException exception) {
-            sslContext = null;
-            // FIXME
-        }
+        // force client mode
+        this.sslEngine.setUseClientMode(true);
     }
 
     @Override
@@ -112,10 +100,9 @@ public class RelpClientTlsSocket extends RelpClientSocket {
         // Async connect
         this.socketChannel.connect(new InetSocketAddress(hostname, port));
 
-        // TODO parametrize using sslEngine
         ClientTlsChannel.Builder builder = ClientTlsChannel.newBuilder(
                 socketChannel,
-                sslContext
+                sslEngine
         );
 
         tlsChannel = builder.build();

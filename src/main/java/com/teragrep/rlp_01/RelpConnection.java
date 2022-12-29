@@ -17,6 +17,7 @@
 
 package com.teragrep.rlp_01;
 
+import javax.net.ssl.SSLEngine;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeoutException;
@@ -81,6 +82,7 @@ public class RelpConnection implements RelpSender {
     }
 
     public void setRxBufferSize(int size) {
+        // FIXME is not used properly
 	    this.rxBufferSize = size;
     }
 
@@ -89,6 +91,7 @@ public class RelpConnection implements RelpSender {
     }
 
     public void setTxBufferSize(int size) {
+        // FIXME is not used properly
 	    this.txBufferSize = size;
     }
 
@@ -110,9 +113,18 @@ public class RelpConnection implements RelpSender {
         this.state = RelpConnectionState.CLOSED;
         this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(this.txBufferSize);
 
-        // FIXME parametrize
-        //this.relpClientSocket = new RelpClientPlainSocket();
-        this.relpClientSocket = new RelpClientTlsSocket();
+        this.relpClientSocket = new RelpClientPlainSocket();
+
+    }
+
+    public RelpConnection(SSLEngine sslEngine) {
+        this.rxBufferSize = 512;
+        this.txBufferSize = 262144;
+
+        this.state = RelpConnectionState.CLOSED;
+        this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(this.txBufferSize);
+
+        this.relpClientSocket = new RelpClientTlsSocket(sslEngine);
     }
 
     
