@@ -42,13 +42,15 @@ To be implemented
 </project>
 ----
 
-[source, java]
+[source,java]
 ----
 import com.teragrep.rlp_01.RelpBatch;
 import com.teragrep.rlp_01.RelpConnection;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.AlgorithmConstraints;
+import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.concurrent.TimeoutException;
 
@@ -56,13 +58,44 @@ import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
 import com.cloudbees.syslog.SyslogMessage;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+
 class Main {
 
     public static void main(String[] args) {
 
         final String serverHostname = "127.0.0.1";
         final int serverPort = 601;
-        RelpConnection relpConnection = new RelpConnection();;
+
+        boolean useTls = false;
+
+        RelpConnection relpConnection;
+        if (useTls) {
+            try {
+                SSLContext sslContext = SSLContextFactory.authenticatedContext(
+                        "keystore.jks",
+                        "changeit",
+                        "TLSv1.3"
+                );
+
+                SSLEngine sslEngine = sslContext.createSSLEngine();
+                /*
+                // in case there is a need to configure these:
+                SSLParameters sslParameters = new SSLParameters();
+                sslParameters.setAlgorithmConstraints();
+                sslParameters.setCipherSuites();
+                sslEngine.setSSLParameters(sslParameters);
+                 */
+
+                relpConnection = new RelpConnection(sslEngine);
+            } catch (GeneralSecurityException | IOException exception) {
+                exception.printStackTrace();
+            }
+        } else {
+            relpConnection = new RelpConnection();
+        }
 
         Main.openConnection(relpConnection, serverHostname, serverPort); // connection helper method
 
@@ -93,8 +126,7 @@ class Main {
                 relpBatch.retryAllFailed(); // re-queue failed events
                 relpConnection.tearDown(); // teardown connection
                 Main.openConnection(relpConnection, serverHostname, serverPort); // reconnect
-            }
-            else { // successful batch
+            } else { // successful batch
                 notSent = false;
             }
         }
@@ -108,7 +140,7 @@ class Main {
         while (!connected) {
             try {
                 connected = relpConnection.connect(serverHostname, serverPort);  // connect
-            } catch (IOException|TimeoutException e) { // error happened during the connect
+            } catch (IOException | TimeoutException e) { // error happened during the connect
                 e.printStackTrace();
                 relpConnection.tearDown(); // retry with clean connection
             }
@@ -125,6 +157,7 @@ class Main {
     }
 }
 ----
+
 
 == Debugging
 Enable debug with
