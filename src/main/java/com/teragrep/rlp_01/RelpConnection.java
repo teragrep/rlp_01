@@ -114,7 +114,6 @@ public class RelpConnection implements RelpSender {
         this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(this.txBufferSize);
 
         this.relpClientSocket = new RelpClientPlainSocket();
-
     }
 
     public RelpConnection(SSLEngine sslEngine) {
