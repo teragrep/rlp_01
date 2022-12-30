@@ -26,6 +26,9 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tlschannel.ClientTlsChannel;
 import tlschannel.NeedsReadException;
 import tlschannel.NeedsWriteException;
@@ -34,6 +37,8 @@ import tlschannel.TlsChannel;
 import javax.net.ssl.SSLEngine;
 
 public class RelpClientTlsSocket extends RelpClientSocket {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RelpClientTlsSocket.class);
+
     private int readTimeout = 0;
 
     @Override
@@ -84,7 +89,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
     }
 
     @Override
-    void open (String hostname, int port) throws IOException, TimeoutException {
+    void open(String hostname, int port) throws IOException, TimeoutException {
         if (this.selector != null && this.selector.isOpen()) {
             // Invalidate all selection key instances in case they were open
             this.selector.close();
@@ -125,8 +130,8 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                     if (this.socketChannel.finishConnect()) {
                         // Connection established
                         notConnected = false;
-                        if (System.getenv("RELP_DEBUG") != null) {
-                            System.out.println("relpConnection> established");
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("relpConnection> established");
                             try {
                                 Thread.sleep(1 * 1000);
                             } catch (InterruptedException e) {
@@ -145,9 +150,8 @@ public class RelpClientTlsSocket extends RelpClientSocket {
     @Override
     void write(ByteBuffer byteBuffer) throws IOException, TimeoutException {
         SelectionKey key = this.socketChannel.register(this.selector, SelectionKey.OP_WRITE);
-        if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("relpConnection.sendRelpRequestAsync> need to write: " + byteBuffer.hasRemaining());
-        }
+        LOGGER.debug("relpConnection.sendRelpRequestAsync> need to write: " + byteBuffer.hasRemaining());
+
         while (byteBuffer.hasRemaining()) {
             int nReady = selector.select(this.writeTimeout);
             if (nReady == 0) {
@@ -159,9 +163,8 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                 SelectionKey currentKey = eventIter.next();
                 // tlsChannel needs to know about both
                 if (currentKey.isWritable() || currentKey.isReadable()) {
-                    if (System.getenv("RELP_DEBUG") != null) {
-                        System.out.println("relpConnection.sendRelpRequestAsync> became writable");
-                    }
+                    LOGGER.debug("relpConnection.sendRelpRequestAsync> " +
+                            "became writable");
                     try {
                         this.tlsChannel.write(byteBuffer);
                     } catch (NeedsReadException e) {
@@ -172,10 +175,9 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                 }
                 eventIter.remove();
             }
-            if (System.getenv("RELP_DEBUG") != null) {
-                System.out.println("relpConnection.sendRelpRequestAsync> still need to write: "
-                        + byteBuffer.hasRemaining());
-            }
+            LOGGER.debug("relpConnection.sendRelpRequestAsync> still need to " +
+                    "write: "
+                    + byteBuffer.hasRemaining());
         }
     }
 
@@ -199,9 +201,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
             SelectionKey currentKey = eventIter.next();
             // tlsChannel needs to know about both
             if (currentKey.isReadable() || currentKey.isWritable()) {
-                if (System.getenv("RELP_DEBUG") != null) {
-                    System.out.println("relpConnection.readAcks> became readable");
-                }
+                LOGGER.debug("relpConnection.readAcks> became readable");
                 try {
                     readBytes = tlsChannel.read(byteBuffer);
                 } catch (NeedsReadException e) {

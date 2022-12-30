@@ -17,6 +17,9 @@
 
 package com.teragrep.rlp_01;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.StringTokenizer;
@@ -27,6 +30,8 @@ import java.util.StringTokenizer;
  * 
  */
 public class RelpFrameRX extends AbstractRelpFrame {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RelpFrameRX.class);
+
     /**
      * PAYLOAD
      */
@@ -35,9 +40,7 @@ public class RelpFrameRX extends AbstractRelpFrame {
         super(txID, command, dataLength);
         this.data = new byte[src.remaining()];
         src.get(this.data);
-        if (System.getenv("RELP_DEBUG") != null) {
-            System.out.println("relpResponse> RelpFrameRX dataLength: " + dataLength);
-        }
+        LOGGER.debug("relpResponse> RelpFrameRX dataLength: " + dataLength);
 
     }
 
