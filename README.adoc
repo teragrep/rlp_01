@@ -12,11 +12,8 @@ Apache License Version 2.0
 Current
 
 - RELP Client
-
-To be implemented
-
 - RELP TLS
-- RELP Server
+- RELP Server (See https://github.com/teragrep/rlp_03)
 
 == Example
 [source,xml]
@@ -30,7 +27,7 @@ To be implemented
         <dependency>
             <groupId>com.teragrep</groupId>
             <artifactId>rlp_01</artifactId>
-            <version>1.0.8</version>
+            <version></version> <!-- see github -->
         </dependency>
         <!-- for syslog rfc5424 formatting -->
         <dependency>
