@@ -157,9 +157,4 @@ class Main {
 
 
 == Debugging
-Enable debug with
-
-[source, shell script]
-----
-export RELP_DEBUG=1
-----
+Configure slf4j provider to enable debug messages. RelpParser logs only on trace level.
