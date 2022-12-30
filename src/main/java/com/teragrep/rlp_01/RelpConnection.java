@@ -88,6 +88,10 @@ public class RelpConnection implements RelpSender {
     }
 
     public void setRxBufferSize(int size) {
+        if (this.state != RelpConnectionState.CLOSED) {
+            throw new IllegalStateException("Connection must be closed to " +
+                    "change rxBufferSize");
+        }
         this.preAllocatedRXBuffer = ByteBuffer.allocateDirect(size);
 	    this.rxBufferSize = size;
     }
@@ -97,6 +101,10 @@ public class RelpConnection implements RelpSender {
     }
 
     public void setTxBufferSize(int size) {
+        if (this.state != RelpConnectionState.CLOSED) {
+            throw new IllegalStateException("Connection must be closed to " +
+                    "change txBufferSize");
+        }
         this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(size);
         this.txBufferSize = size;
     }
@@ -113,19 +121,19 @@ public class RelpConnection implements RelpSender {
     private RelpWindow window;
 
     public RelpConnection() {
+        this.state = RelpConnectionState.CLOSED;
+
         this.setRxBufferSize(512);
         this.setTxBufferSize(262144);
-
-        this.state = RelpConnectionState.CLOSED;
 
         this.relpClientSocket = new RelpClientPlainSocket();
     }
 
     public RelpConnection(SSLEngine sslEngine) {
+        this.state = RelpConnectionState.CLOSED;
+
         this.setRxBufferSize(512);
         this.setTxBufferSize(262144);
-
-        this.state = RelpConnectionState.CLOSED;
 
         this.relpClientSocket = new RelpClientTlsSocket(sslEngine);
     }
