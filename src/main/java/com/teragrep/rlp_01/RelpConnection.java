@@ -37,7 +37,8 @@ public class RelpConnection implements RelpSender {
 
     private int rxBufferSize;
     private int txBufferSize;
-    private final ByteBuffer preAllocatedTXBuffer;
+    private ByteBuffer preAllocatedTXBuffer;
+    private ByteBuffer preAllocatedRXBuffer;
     private static final int MAX_COMMAND_LENGTH  = 11;
     private final RelpClientSocket relpClientSocket;
 
@@ -88,6 +89,7 @@ public class RelpConnection implements RelpSender {
 
     public void setRxBufferSize(int size) {
         // FIXME is not used properly
+        this.preAllocatedRXBuffer = ByteBuffer.allocateDirect(size);
 	    this.rxBufferSize = size;
     }
 
@@ -97,7 +99,8 @@ public class RelpConnection implements RelpSender {
 
     public void setTxBufferSize(int size) {
         // FIXME is not used properly
-	    this.txBufferSize = size;
+        this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(size);
+        this.txBufferSize = size;
     }
 
 
@@ -112,21 +115,19 @@ public class RelpConnection implements RelpSender {
     private RelpWindow window;
 
     public RelpConnection() {
-        this.rxBufferSize = 512;
-        this.txBufferSize = 262144;
+        this.setRxBufferSize(512);
+        this.setTxBufferSize(262144);
 
         this.state = RelpConnectionState.CLOSED;
-        this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(this.txBufferSize);
 
         this.relpClientSocket = new RelpClientPlainSocket();
     }
 
     public RelpConnection(SSLEngine sslEngine) {
-        this.rxBufferSize = 512;
-        this.txBufferSize = 262144;
+        this.setRxBufferSize(512);
+        this.setTxBufferSize(262144);
 
         this.state = RelpConnectionState.CLOSED;
-        this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(this.txBufferSize);
 
         this.relpClientSocket = new RelpClientTlsSocket(sslEngine);
     }
@@ -243,7 +244,6 @@ public class RelpConnection implements RelpSender {
     private void readAcks(RelpBatch relpBatch)
             throws IOException, TimeoutException, IllegalStateException {
         LOGGER.debug("relpConnection.readAcks> entry");
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(this.rxBufferSize);
 
         RelpParser parser = null;
 
@@ -254,20 +254,20 @@ public class RelpConnection implements RelpSender {
         while (notComplete) {
             LOGGER.debug("relpConnection.readAcks> need to read");
 
-            readBytes = relpClientSocket.read(byteBuffer);
+            readBytes = relpClientSocket.read(preAllocatedRXBuffer);
 
             LOGGER.debug("relpConnection.readAcks> read bytes: " + readBytes);
 
             // read from it
-            byteBuffer.flip();
+            preAllocatedRXBuffer.flip();
 
             // process it
             if (readBytes > 0) {
-                while (byteBuffer.hasRemaining()) {
+                while (preAllocatedRXBuffer.hasRemaining()) {
                     if (parser == null) {
                         parser = new RelpParser();
                     }
-                    parser.parse(byteBuffer.get());
+                    parser.parse(preAllocatedRXBuffer.get());
 
                     if (parser.isComplete()) {
                         LOGGER.debug("relpConnection.readAcks> read parser " +
@@ -295,9 +295,8 @@ public class RelpConnection implements RelpSender {
                 }
             }
             // everything should be read by now
-            byteBuffer.compact();
+            preAllocatedRXBuffer.compact();
         }
-
         LOGGER.debug("relpConnection.readAcks> exit");
     }
 
