@@ -88,7 +88,6 @@ public class RelpConnection implements RelpSender {
     }
 
     public void setRxBufferSize(int size) {
-        // FIXME is not used properly
         this.preAllocatedRXBuffer = ByteBuffer.allocateDirect(size);
 	    this.rxBufferSize = size;
     }
@@ -98,7 +97,6 @@ public class RelpConnection implements RelpSender {
     }
 
     public void setTxBufferSize(int size) {
-        // FIXME is not used properly
         this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(size);
         this.txBufferSize = size;
     }
