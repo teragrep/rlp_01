@@ -189,7 +189,7 @@ public class RelpConnection implements RelpSender {
         this.sendBatch(connectionCloseBatch);
         boolean closeSuccess = false;
         RelpFrameRX closeResponse = connectionCloseBatch.getResponse(reqId);
-        if (closeResponse.dataLength == 0) {
+        if (closeResponse != null && closeResponse.dataLength == 0) {
             closeSuccess = true;
         }
         LOGGER.debug("relpConnection.disconnect> exit with: " + closeSuccess);
