@@ -130,8 +130,8 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                     if (this.socketChannel.finishConnect()) {
                         // Connection established
                         notConnected = false;
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("relpConnection> established");
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("relpConnection> established");
                             try {
                                 Thread.sleep(1 * 1000);
                             } catch (InterruptedException e) {
@@ -150,7 +150,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
     @Override
     void write(ByteBuffer byteBuffer) throws IOException, TimeoutException {
         SelectionKey key = this.socketChannel.register(this.selector, SelectionKey.OP_WRITE);
-        LOGGER.debug("relpConnection.sendRelpRequestAsync> need to write: " + byteBuffer.hasRemaining());
+        LOGGER.trace("relpConnection.sendRelpRequestAsync> need to write: " + byteBuffer.hasRemaining());
 
         while (byteBuffer.hasRemaining()) {
             int nReady = selector.select(this.writeTimeout);
@@ -163,7 +163,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                 SelectionKey currentKey = eventIter.next();
                 // tlsChannel needs to know about both
                 if (currentKey.isWritable() || currentKey.isReadable()) {
-                    LOGGER.debug("relpConnection.sendRelpRequestAsync> " +
+                    LOGGER.trace("relpConnection.sendRelpRequestAsync> " +
                             "became writable");
                     try {
                         this.tlsChannel.write(byteBuffer);
@@ -175,7 +175,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                 }
                 eventIter.remove();
             }
-            LOGGER.debug("relpConnection.sendRelpRequestAsync> still need to " +
+            LOGGER.trace("relpConnection.sendRelpRequestAsync> still need to " +
                     "write: "
                     + byteBuffer.hasRemaining());
         }
@@ -201,7 +201,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
             SelectionKey currentKey = eventIter.next();
             // tlsChannel needs to know about both
             if (currentKey.isReadable() || currentKey.isWritable()) {
-                LOGGER.debug("relpConnection.readAcks> became readable");
+                LOGGER.trace("relpConnection.readAcks> became readable");
                 try {
                     readBytes = tlsChannel.read(byteBuffer);
                 } catch (NeedsReadException e) {

@@ -58,11 +58,11 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
      * HEADER DATA TRAILER to the byte buffer.
      */
     public void write(ByteBuffer dst) throws IOException {
-        LOGGER.debug("RelpFrameTX.write> entry");
+        LOGGER.trace("RelpFrameTX.write> entry");
         putHeader(dst);
         putData(dst);
         dst.put((byte)'\n');
-        LOGGER.debug("RelpFrameTX.write> exit");
+        LOGGER.trace("RelpFrameTX.write> exit");
     }
 
     public int length() throws UnsupportedEncodingException {
@@ -91,12 +91,12 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
      The buffer to write the data into.
      */
     private void putData(ByteBuffer dst) {
-        LOGGER.debug("RelpFrameTX.putData> entry");
+        LOGGER.trace("RelpFrameTX.putData> entry");
         if (this.data != null) {
                 dst.put((byte) ' ');
                 dst.put(this.data);
         }
-        LOGGER.debug("RelpFrameTX.putData> exit");
+        LOGGER.trace("RelpFrameTX.putData> exit");
     }
 
     /**
@@ -107,13 +107,13 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
      *  Shouldn't happen for US-ASCII..
      */
     private void putHeader(ByteBuffer dst) throws UnsupportedEncodingException {
-        LOGGER.debug("RelpFrameTX.putHeader> entry");
+        LOGGER.trace("RelpFrameTX.putHeader> entry");
         dst.put(Integer.toString(this.transactionNumber).getBytes("US-ASCII"));
         dst.put((byte)' ');
         dst.put(this.command.getBytes("US-ASCII"));
         dst.put((byte)' ');
         dst.put(Integer.toString(this.dataLength).getBytes("US-ASCII"));
-        LOGGER.debug("RelpFrameTX.putHeader> exit");
+        LOGGER.trace("RelpFrameTX.putHeader> exit");
     }
 
     /**
