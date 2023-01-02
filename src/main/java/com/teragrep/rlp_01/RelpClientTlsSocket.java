@@ -168,7 +168,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                     LOGGER.trace("relpConnection.sendRelpRequestAsync> " +
                             "became writable");
                     try {
-                        int wroteBytes = this.tlsChannel.write(byteBuffer);
+                        this.tlsChannel.write(byteBuffer);
                     } catch (NeedsReadException e) {
                         key.interestOps(SelectionKey.OP_READ); // overwrites previous value
                     } catch (NeedsWriteException e) {
