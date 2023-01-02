@@ -26,6 +26,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,15 +78,12 @@ public class RelpClientTlsSocket extends RelpClientSocket {
     private SocketChannel socketChannel;
     private Selector selector;
 
-    private final SSLEngine sslEngine;
-
     private TlsChannel tlsChannel = null;
 
-    RelpClientTlsSocket(SSLEngine sslEngine) {
-        this.sslEngine = sslEngine;
+    private final Supplier<SSLEngine> sslEngineSupplier;
 
-        // force client mode
-        this.sslEngine.setUseClientMode(true);
+    RelpClientTlsSocket(Supplier<SSLEngine> sslEngineSupplier) {
+        this.sslEngineSupplier = sslEngineSupplier;
     }
 
     @Override
@@ -104,6 +102,10 @@ public class RelpClientTlsSocket extends RelpClientSocket {
         SelectionKey key = this.socketChannel.register(this.selector, SelectionKey.OP_CONNECT);
         // Async connect
         this.socketChannel.connect(new InetSocketAddress(hostname, port));
+
+        SSLEngine sslEngine = sslEngineSupplier.get();
+        // force client mode
+        sslEngine.setUseClientMode(true);
 
         ClientTlsChannel.Builder builder = ClientTlsChannel.newBuilder(
                 socketChannel,
@@ -166,7 +168,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                     LOGGER.trace("relpConnection.sendRelpRequestAsync> " +
                             "became writable");
                     try {
-                        this.tlsChannel.write(byteBuffer);
+                        int wroteBytes = this.tlsChannel.write(byteBuffer);
                     } catch (NeedsReadException e) {
                         key.interestOps(SelectionKey.OP_READ); // overwrites previous value
                     } catch (NeedsWriteException e) {
@@ -183,6 +185,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
 
     @Override
     void close() throws IOException {
+        tlsChannel.close();
         socketChannel.close();
     }
 
@@ -205,12 +208,17 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                 try {
                     readBytes = tlsChannel.read(byteBuffer);
                 } catch (NeedsReadException e) {
+                    readBytes = 0;
                     key.interestOps(SelectionKey.OP_READ); // overwrites previous value
                 } catch (NeedsWriteException e) {
+                    readBytes = 0;
                     key.interestOps(SelectionKey.OP_WRITE); // overwrites previous value
                 }
             }
             eventIter.remove();
+        }
+        if (readBytes == -1) {
+            throw new IOException("read failed");
         }
         return readBytes;
     }
