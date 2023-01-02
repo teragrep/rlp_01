@@ -24,6 +24,7 @@ import javax.net.ssl.SSLEngine;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 /**
  * Abstract the concept of RELP session: it handles the
@@ -129,13 +130,13 @@ public class RelpConnection implements RelpSender {
         this.relpClientSocket = new RelpClientPlainSocket();
     }
 
-    public RelpConnection(SSLEngine sslEngine) {
+    public RelpConnection(Supplier<SSLEngine> sslEngineSupplier) {
         this.state = RelpConnectionState.CLOSED;
 
         this.setRxBufferSize(512);
         this.setTxBufferSize(262144);
 
-        this.relpClientSocket = new RelpClientTlsSocket(sslEngine);
+        this.relpClientSocket = new RelpClientTlsSocket(sslEngineSupplier);
     }
 
     
