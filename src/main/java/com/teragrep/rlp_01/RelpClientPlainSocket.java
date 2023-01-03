@@ -110,8 +110,8 @@ class RelpClientPlainSocket extends RelpClientSocket {
                     if (this.socketChannel.finishConnect()) {
                         // Connection established
                         notConnected = false;
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("relpConnection> established");
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("relpConnection> established");
                             try {
                                 Thread.sleep(1 * 1000);
                             } catch (InterruptedException e) {
@@ -130,7 +130,7 @@ class RelpClientPlainSocket extends RelpClientSocket {
     @Override
     void write(ByteBuffer byteBuffer) throws IOException, TimeoutException {
         SelectionKey key = this.socketChannel.register(this.poll, SelectionKey.OP_WRITE);
-        LOGGER.debug("relpConnection.sendRelpRequestAsync> need to write: " + byteBuffer.hasRemaining());
+        LOGGER.trace("relpConnection.sendRelpRequestAsync> need to write: " + byteBuffer.hasRemaining());
 
         while (byteBuffer.hasRemaining()) {
             int nReady = poll.select(this.writeTimeout);
@@ -142,12 +142,12 @@ class RelpClientPlainSocket extends RelpClientSocket {
             while (eventIter.hasNext()) {
                 SelectionKey currentKey = eventIter.next();
                 if (currentKey.isWritable()) {
-                    LOGGER.debug("relpConnection.sendRelpRequestAsync> became writable");
+                    LOGGER.trace("relpConnection.sendRelpRequestAsync> became writable");
                     this.socketChannel.write(byteBuffer);
                 }
                 eventIter.remove();
             }
-            LOGGER.debug("relpConnection.sendRelpRequestAsync> still need to write: "
+            LOGGER.trace("relpConnection.sendRelpRequestAsync> still need to write: "
                         + byteBuffer.hasRemaining());
         }
         key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
@@ -172,7 +172,7 @@ class RelpClientPlainSocket extends RelpClientSocket {
         while (eventIter.hasNext()) {
             SelectionKey currentKey = eventIter.next();
             if (currentKey.isReadable()) {
-                LOGGER.debug("relpConnection.readAcks> became readable");
+                LOGGER.trace("relpConnection.readAcks> became readable");
                 readBytes = socketChannel.read(byteBuffer);
             }
             eventIter.remove();
