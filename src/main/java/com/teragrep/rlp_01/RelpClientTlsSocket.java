@@ -186,7 +186,6 @@ public class RelpClientTlsSocket extends RelpClientSocket {
     @Override
     void close() throws IOException {
         tlsChannel.close();
-        socketChannel.close();
     }
 
     @Override
