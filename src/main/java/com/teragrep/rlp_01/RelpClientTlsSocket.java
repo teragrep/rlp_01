@@ -206,18 +206,16 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                 LOGGER.trace("relpConnection.readAcks> became readable");
                 try {
                     readBytes = tlsChannel.read(byteBuffer);
+                    if (readBytes == -1) {
+                        throw new IOException("read failed");
+                    }
                 } catch (NeedsReadException e) {
-                    readBytes = 0;
                     key.interestOps(SelectionKey.OP_READ); // overwrites previous value
                 } catch (NeedsWriteException e) {
-                    readBytes = 0;
                     key.interestOps(SelectionKey.OP_WRITE); // overwrites previous value
                 }
             }
             eventIter.remove();
-        }
-        if (readBytes == -1) {
-            throw new IOException("read failed");
         }
         return readBytes;
     }
