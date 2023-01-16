@@ -50,6 +50,7 @@ import java.security.AlgorithmConstraints;
 import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
@@ -77,16 +78,17 @@ class Main {
                         "TLSv1.3"
                 );
 
-                SSLEngine sslEngine = sslContext.createSSLEngine();
+                Supplier<SSLEngine> sslEngineSupplier = sslContext::createSSLEngine;
                 /*
                 // in case there is a need to configure these:
+                SSLEngine sslEngine = sslContext.createSSLEngine();
                 SSLParameters sslParameters = new SSLParameters();
                 sslParameters.setAlgorithmConstraints();
                 sslParameters.setCipherSuites();
                 sslEngine.setSSLParameters(sslParameters);
                  */
 
-                relpConnection = new RelpConnection(sslEngine);
+                relpConnection = new RelpConnection(sslEngineSupplier);
             } catch (GeneralSecurityException | IOException exception) {
                 exception.printStackTrace();
             }
