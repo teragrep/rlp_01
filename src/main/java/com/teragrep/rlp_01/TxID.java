@@ -25,7 +25,7 @@ package com.teragrep.rlp_01;
 public class TxID {
 
     private int transactionIdentifier;
-    public int MAX_ID = 999999999;
+    public static final int MAX_ID = 999999999;
 
     public TxID() {
         this.transactionIdentifier = 1;

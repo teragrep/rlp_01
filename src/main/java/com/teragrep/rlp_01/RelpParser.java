@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  A hand-made parser to process RELP messages.
@@ -28,38 +29,32 @@ import java.nio.ByteBuffer;
 public class RelpParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(RelpParser.class);
 
-    // perhaps antlr4 would be better for this and not some hand made parser
-    private relpParserState state;
-    private boolean isComplete;
+    private static final int MAX_COMMAND_LENGTH  = 11;
 
-    private String frameTxnIdString;
-    private int frameTxnId;
-    private String frameCommandString;
-    private String frameLengthString;
-    private int frameLength;
+    // perhaps antlr4 would be better for this and not some hand made parser
+    private RelpParserState state = RelpParserState.TXN;
+    private boolean isComplete = false;
+    private final ByteBuffer txnIdBuffer = ByteBuffer.allocateDirect(String.valueOf(TxID.MAX_ID).length());
+    private int frameTxnId = -1;
+    private final ByteBuffer commandBuffer = ByteBuffer.allocateDirect(MAX_COMMAND_LENGTH);
+    private String frameCommand = "";
+    private final ByteBuffer lengthBuffer = ByteBuffer.allocateDirect(String.valueOf(Integer.MAX_VALUE).length());
+    private int frameLength = -1;
     private int frameLengthLeft;
     private ByteBuffer frameData;
 
-    private static final int MAX_COMMAND_LENGTH  = 11;
 
     public RelpParser() {
-        this.state = relpParserState.TXN;
-        this.frameTxnIdString = "";
-        this.frameTxnId = -1;
-        this.frameCommandString= "";
-        this.frameLengthString= "";
-        this.frameLength = -1;
+
     }
 
     @Deprecated
-    public RelpParser( boolean debug )
-    {
-        this.state = relpParserState.TXN;
-        this.frameTxnIdString = "";
-        this.frameTxnId = -1;
-        this.frameCommandString = "";
-        this.frameLengthString = "";
-        this.frameLength = -1;
+    public RelpParser( boolean debug ) {
+
+    }
+
+    private String byteBufferToAsciiString(ByteBuffer byteBuffer) {
+        return StandardCharsets.US_ASCII.decode(byteBuffer).toString();
     }
 
     public boolean isComplete() {
@@ -71,7 +66,7 @@ public class RelpParser {
     }
 
     public String getCommandString() {
-        return this.frameCommandString;
+        return frameCommand;
     }
 
     public int getLength() {
@@ -82,15 +77,19 @@ public class RelpParser {
         return this.frameData;
     }
 
-    public relpParserState getState() { return this.state; }
+    public RelpParserState getState() {
+        return state;
+    }
 
-    private enum relpParserState {
+    private enum RelpParserState {
         TXN,
         COMMAND,
         LENGTH,
         DATA,
         NL
     }
+
+
 
     /**
      Parse the message byte-by-byte and enter each byte as a string to the proper
@@ -103,35 +102,38 @@ public class RelpParser {
         switch (this.state) {
             case TXN:
                 if (b == ' '){
-                    frameTxnId = Integer.parseInt(frameTxnIdString);
+                    txnIdBuffer.flip();
+                    frameTxnId = Integer.parseInt(byteBufferToAsciiString(txnIdBuffer));
                     if (frameTxnId < 0) {
-                        throw new IllegalArgumentException("TXNR must " +
-                                "be >= 0");
+                        throw new IllegalArgumentException("TXNR must be >= 0");
                     }
-                    state = relpParserState.COMMAND;
                     LOGGER.trace( "relpParser> txnId <[{}]>", frameTxnId );
+                    state = RelpParserState.COMMAND;
                 }
                 else {
-                    frameTxnIdString += new String(new byte[] {b});
+                    txnIdBuffer.put(b);
                 }
                 break;
             case COMMAND:
                 if (b == ' '){
-                    state = relpParserState.LENGTH;
-                    LOGGER.trace( "relpParser> command <[{}]>", frameCommandString );
+                    commandBuffer.flip();
                     // Spec constraints.
-                    if( frameCommandString.length() > MAX_COMMAND_LENGTH &&
-                            !frameCommandString.equals(RelpCommand.OPEN) &&
-                            !frameCommandString.equals(RelpCommand.CLOSE) &&
-                            !frameCommandString.equals(RelpCommand.ABORT) &&
-                            !frameCommandString.equals(RelpCommand.SERVER_CLOSE) &&
-                            !frameCommandString.equals(RelpCommand.SYSLOG) &&
-                            !frameCommandString.equals(RelpCommand.RESPONSE)) {
+                    frameCommand = byteBufferToAsciiString(commandBuffer);
+                    LOGGER.trace( "relpParser> command <[{}]>", frameCommand);
+
+                    if(
+                            !frameCommand.equals(RelpCommand.OPEN) &&
+                            !frameCommand.equals(RelpCommand.CLOSE) &&
+                            !frameCommand.equals(RelpCommand.ABORT) &&
+                            !frameCommand.equals(RelpCommand.SERVER_CLOSE) &&
+                            !frameCommand.equals(RelpCommand.SYSLOG) &&
+                            !frameCommand.equals(RelpCommand.RESPONSE)) {
                         throw new IllegalStateException( "Invalid COMMAND." );
                     }
+                    state = RelpParserState.LENGTH;
                 }
                 else {
-                    frameCommandString += new String(new byte[] {b});
+                    commandBuffer.put(b);
                 }
                 break;
             case LENGTH:
@@ -142,12 +144,11 @@ public class RelpParser {
                  HEADER = TXNR SP COMMAND SP DATALEN LF; and LF is for relpParserState.NL
                  */
                 if (b == ' ' || b == '\n') {
-
-                    frameLength = Integer.parseInt(frameLengthString);
+                    lengthBuffer.flip();
+                    frameLength = Integer.parseInt(byteBufferToAsciiString(lengthBuffer));
 
                     if (frameLength < 0) {
-                        throw new IllegalArgumentException("DATALEN must be " +
-                                ">= 0");
+                        throw new IllegalArgumentException("DATALEN must be >= 0");
                     }
 
                     frameLengthLeft = frameLength;
@@ -155,11 +156,11 @@ public class RelpParser {
 
                     // Length bytes done, move onto next state.
                     if (frameLength == 0 ) {
-                        state = relpParserState.NL;
+                        state = RelpParserState.NL;
                     } else {
-                        state = relpParserState.DATA;
+                        state = RelpParserState.DATA;
                     }
-                    LOGGER.trace( "relpParser> length <[{}]>", frameLengthString );
+                    LOGGER.trace( "relpParser> length <[{}]>", frameLength );
                     if (b == '\n') {
                         if (frameLength == 0) {
                             this.isComplete = true;
@@ -170,11 +171,11 @@ public class RelpParser {
                     }
                 }
                 else {
-                    frameLengthString += new String(new byte[] {b});
+                    lengthBuffer.put(b);
                 }
                 break;
             case DATA:
-                if(this.isComplete) this.state = relpParserState.NL;
+                if(this.isComplete) this.state = RelpParserState.NL;
                 // Parser will only read the given length of data. If the message
                 // gives data bigger than the frameLength, bad luck for them.
                 if (frameLengthLeft > 0) {
@@ -187,7 +188,7 @@ public class RelpParser {
                 if (frameLengthLeft == 0) {
                     // make ready for consumer
                     frameData.flip();
-                    state = relpParserState.NL;
+                    state = RelpParserState.NL;
 
                     LOGGER.trace("relpParser> data buffer <{}>", frameData);
 
@@ -208,5 +209,18 @@ public class RelpParser {
             default:
                 break;
         }
+    }
+
+    public void reset() {
+        state = RelpParserState.TXN;
+        isComplete = false;
+        txnIdBuffer.clear();
+        frameTxnId = -1;
+        commandBuffer.clear();
+        frameCommand = "";
+        lengthBuffer.clear();
+        frameLength = -1;
+        frameLengthLeft = 0;
+        frameData = null;
     }
 }
