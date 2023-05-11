@@ -164,7 +164,7 @@ public class RelpConnection implements RelpSender {
         long reqId = connectionOpenBatch.putRequest(relpRequest);
         this.sendBatch(connectionOpenBatch);
         boolean openSuccess = connectionOpenBatch.verifyTransaction(reqId);
-        LOGGER.trace("relpConnection.connect> exit with: " + openSuccess);
+        LOGGER.trace("relpConnection.connect> exit with <{}>", openSuccess);
         if (openSuccess) {
             this.state = RelpConnectionState.OPEN;
         }
@@ -200,7 +200,7 @@ public class RelpConnection implements RelpSender {
         if (closeResponse != null && closeResponse.dataLength == 0) {
             closeSuccess = true;
         }
-        LOGGER.trace("relpConnection.disconnect> exit with: " + closeSuccess);
+        LOGGER.trace("relpConnection.disconnect> exit with <{}>", closeSuccess);
         if(closeSuccess){
             relpClientSocket.close();
             this.state = RelpConnectionState.CLOSED;
@@ -227,7 +227,7 @@ public class RelpConnection implements RelpSender {
 
      */
     private void sendBatch(RelpBatch relpBatch)  throws IOException, TimeoutException, IllegalStateException {
-        LOGGER.trace("relpConnection.sendBatch> entry with wq len " + relpBatch.getWorkQueueLength());
+        LOGGER.trace("relpConnection.sendBatch> entry with wq len <{}>", relpBatch.getWorkQueueLength());
         // send a batch of requests..
         RelpFrameTX relpRequest;
 
@@ -263,7 +263,7 @@ public class RelpConnection implements RelpSender {
 
             readBytes = relpClientSocket.read(preAllocatedRXBuffer);
 
-            LOGGER.trace("relpConnection.readAcks> read bytes: " + readBytes);
+            LOGGER.trace("relpConnection.readAcks> read bytes <{}>", readBytes);
 
             // read from it
             preAllocatedRXBuffer.flip();
@@ -277,8 +277,7 @@ public class RelpConnection implements RelpSender {
                     parser.parse(preAllocatedRXBuffer.get());
 
                     if (parser.isComplete()) {
-                        LOGGER.trace("relpConnection.readAcks> read parser " +
-                                "complete: " + parser.isComplete());
+                        LOGGER.trace("relpConnection.readAcks> read parser complete <{}>", parser.isComplete());
                         // one response read successfully
                         int txnId = parser.getTxnId();
                         if (window.isPending(txnId)) {
@@ -311,15 +310,11 @@ public class RelpConnection implements RelpSender {
         LOGGER.trace("relpConnection.sendRelpRequestAsync> entry");
         ByteBuffer byteBuffer;
         if (relpRequest.length() > this.txBufferSize) {
-            LOGGER.trace("relpConnection.sendRelpRequestAsync> allocate new " +
-                    "txBuffer of size: "
-                    + relpRequest.length());
+            LOGGER.trace("relpConnection.sendRelpRequestAsync> allocate new txBuffer of size <{}>", relpRequest.length());
             byteBuffer = ByteBuffer.allocateDirect(relpRequest.length());
         }
         else {
-            LOGGER.trace("relpConnection.sendRelpRequestAsync> using " +
-                    "preAllocatedTXBuffer for size: "
-            + relpRequest.length());
+            LOGGER.trace("relpConnection.sendRelpRequestAsync> using preAllocatedTXBuffer for size <{}>", relpRequest.length());
             byteBuffer = this.preAllocatedTXBuffer;
         }
         relpRequest.write(byteBuffer);
