@@ -40,8 +40,8 @@ public class RelpConnection implements RelpSender {
     private int txBufferSize;
     private ByteBuffer preAllocatedTXBuffer;
     private ByteBuffer preAllocatedRXBuffer;
-    private static final int MAX_COMMAND_LENGTH  = 11;
     private final RelpClientSocket relpClientSocket;
+    private final RelpParser parser = new RelpParser();
 
     private final static byte[] OFFER;
     
@@ -252,8 +252,6 @@ public class RelpConnection implements RelpSender {
             throws IOException, TimeoutException, IllegalStateException {
         LOGGER.trace("relpConnection.readAcks> entry");
 
-        RelpParser parser = null;
-
         int readBytes;
 
         boolean notComplete = this.window.size() > 0;
@@ -271,9 +269,6 @@ public class RelpConnection implements RelpSender {
             // process it
             if (readBytes > 0) {
                 while (preAllocatedRXBuffer.hasRemaining()) {
-                    if (parser == null) {
-                        parser = new RelpParser();
-                    }
                     parser.parse(preAllocatedRXBuffer.get());
 
                     if (parser.isComplete()) {
@@ -292,7 +287,7 @@ public class RelpConnection implements RelpSender {
                             window.removePending(txnId);
                         }
                         // this one is complete, ready for next
-                        parser = null;
+                        parser.reset();
                         if (window.size() == 0) {
                             notComplete = false;
                             break;
