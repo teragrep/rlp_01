@@ -40,7 +40,7 @@ public class RelpFrameRX extends AbstractRelpFrame {
         super(txID, command, dataLength);
         this.data = new byte[src.remaining()];
         src.get(this.data);
-        LOGGER.trace("relpResponse> RelpFrameRX dataLength: " + dataLength);
+        LOGGER.trace("relpResponse> RelpFrameRX dataLength <{}>", dataLength);
 
     }
 

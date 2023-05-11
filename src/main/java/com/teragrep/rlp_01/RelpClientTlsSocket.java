@@ -152,7 +152,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
     @Override
     void write(ByteBuffer byteBuffer) throws IOException, TimeoutException {
         SelectionKey key = this.socketChannel.register(this.selector, SelectionKey.OP_WRITE);
-        LOGGER.trace("relpConnection.sendRelpRequestAsync> need to write: " + byteBuffer.hasRemaining());
+        LOGGER.trace("relpConnection.sendRelpRequestAsync> need to write <{}>", byteBuffer.hasRemaining());
 
         while (byteBuffer.hasRemaining()) {
             int nReady = selector.select(this.writeTimeout);
@@ -165,8 +165,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                 SelectionKey currentKey = eventIter.next();
                 // tlsChannel needs to know about both
                 if (currentKey.isWritable() || currentKey.isReadable()) {
-                    LOGGER.trace("relpConnection.sendRelpRequestAsync> " +
-                            "became writable");
+                    LOGGER.trace("relpConnection.sendRelpRequestAsync> became writable");
                     try {
                         this.tlsChannel.write(byteBuffer);
                     } catch (NeedsReadException e) {
@@ -177,9 +176,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                 }
                 eventIter.remove();
             }
-            LOGGER.trace("relpConnection.sendRelpRequestAsync> still need to " +
-                    "write: "
-                    + byteBuffer.hasRemaining());
+            LOGGER.trace("relpConnection.sendRelpRequestAsync> still need to write <{}>", byteBuffer.hasRemaining());
         }
     }
 

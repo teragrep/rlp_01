@@ -109,7 +109,7 @@ public class RelpParser {
                                 "be >= 0");
                     }
                     state = relpParserState.COMMAND;
-                    LOGGER.trace( "relpParser> txnId: " + frameTxnId );
+                    LOGGER.trace( "relpParser> txnId <[{}]>", frameTxnId );
                 }
                 else {
                     frameTxnIdString += new String(new byte[] {b});
@@ -118,7 +118,7 @@ public class RelpParser {
             case COMMAND:
                 if (b == ' '){
                     state = relpParserState.LENGTH;
-                    LOGGER.trace( "relpParser> command: " + frameCommandString );
+                    LOGGER.trace( "relpParser> command <[{}]>", frameCommandString );
                     // Spec constraints.
                     if( frameCommandString.length() > MAX_COMMAND_LENGTH &&
                             !frameCommandString.equals(RelpCommand.OPEN) &&
@@ -159,12 +159,14 @@ public class RelpParser {
                     } else {
                         state = relpParserState.DATA;
                     }
-                    LOGGER.trace( "relpParser> length: " + frameLengthString );
+                    LOGGER.trace( "relpParser> length <[{}]>", frameLengthString );
                     if (b == '\n') {
                         if (frameLength == 0) {
                             this.isComplete = true;
                         }
-                        LOGGER.trace( "relpParser> newline after LENGTH: " + new String( new byte[] {b} ) );
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("relpParser> newline after LENGTH <[{}]>", new String(new byte[]{b}));
+                        }
                     }
                 }
                 else {
@@ -178,20 +180,26 @@ public class RelpParser {
                 if (frameLengthLeft > 0) {
                     frameData.put(b);
                     frameLengthLeft--;
-                    LOGGER.trace( "relpParser> data b: " + new String( new byte[] {b} ) + " left: " + frameLengthLeft );
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("relpParser> data b <[{}]> left <{}>", new String(new byte[]{b}), frameLengthLeft);
+                    }
                 }
                 if (frameLengthLeft == 0) {
                     // make ready for consumer
                     frameData.flip();
                     state = relpParserState.NL;
-                    LOGGER.trace( "relpParser> data buffer: " + frameData.toString() );
+
+                    LOGGER.trace("relpParser> data buffer <{}>", frameData);
+
                 }
                 break;
             case NL:
                 if (b == '\n'){
                     // RELP message always ends with a newline byte.
                     this.isComplete = true;
-                    LOGGER.trace( "relpParser> newline: " + new String( new byte[] {b} ) );
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("relpParser> newline <[{}]>", new String(new byte[]{b}));
+                    }
                 }
                 else {
                     throw new IllegalStateException("relp frame parsing failure");
