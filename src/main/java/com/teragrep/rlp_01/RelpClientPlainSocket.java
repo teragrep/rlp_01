@@ -130,7 +130,9 @@ class RelpClientPlainSocket extends RelpClientSocket {
     @Override
     void write(ByteBuffer byteBuffer) throws IOException, TimeoutException {
         SelectionKey key = this.socketChannel.register(this.poll, SelectionKey.OP_WRITE);
-        LOGGER.trace("relpConnection.sendRelpRequestAsync> need to write <{}> ", byteBuffer.hasRemaining());
+        if(LOGGER.isTraceEnabled()) {
+            LOGGER.trace("relpConnection.sendRelpRequestAsync> need to write <{}> ", byteBuffer.hasRemaining());
+        }
 
         while (byteBuffer.hasRemaining()) {
             int nReady = poll.select(this.writeTimeout);
@@ -147,7 +149,9 @@ class RelpClientPlainSocket extends RelpClientSocket {
                 }
                 eventIter.remove();
             }
-            LOGGER.trace("relpConnection.sendRelpRequestAsync> still need to write <{}>", byteBuffer.hasRemaining());
+            if(LOGGER.isTraceEnabled()) {
+                LOGGER.trace("relpConnection.sendRelpRequestAsync> still need to write <{}>", byteBuffer.hasRemaining());
+            }
         }
         key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
     }
