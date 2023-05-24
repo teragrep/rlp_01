@@ -227,7 +227,9 @@ public class RelpConnection implements RelpSender {
 
      */
     private void sendBatch(RelpBatch relpBatch)  throws IOException, TimeoutException, IllegalStateException {
-        LOGGER.trace("relpConnection.sendBatch> entry with wq len <{}>", relpBatch.getWorkQueueLength());
+        if(LOGGER.isTraceEnabled()) {
+            LOGGER.trace("relpConnection.sendBatch> entry with wq len <{}>", relpBatch.getWorkQueueLength());
+        }
         // send a batch of requests..
         RelpFrameTX relpRequest;
 
@@ -272,7 +274,9 @@ public class RelpConnection implements RelpSender {
                     parser.parse(preAllocatedRXBuffer.get());
 
                     if (parser.isComplete()) {
-                        LOGGER.trace("relpConnection.readAcks> read parser complete <{}>", parser.isComplete());
+                        if(LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("relpConnection.readAcks> read parser complete <{}>", parser.isComplete());
+                        }
                         // one response read successfully
                         int txnId = parser.getTxnId();
                         if (window.isPending(txnId)) {
@@ -305,11 +309,15 @@ public class RelpConnection implements RelpSender {
         LOGGER.trace("relpConnection.sendRelpRequestAsync> entry");
         ByteBuffer byteBuffer;
         if (relpRequest.length() > this.txBufferSize) {
-            LOGGER.trace("relpConnection.sendRelpRequestAsync> allocate new txBuffer of size <{}>", relpRequest.length());
+            if(LOGGER.isTraceEnabled()) {
+                LOGGER.trace("relpConnection.sendRelpRequestAsync> allocate new txBuffer of size <{}>", relpRequest.length());
+            }
             byteBuffer = ByteBuffer.allocateDirect(relpRequest.length());
         }
         else {
-            LOGGER.trace("relpConnection.sendRelpRequestAsync> using preAllocatedTXBuffer for size <{}>", relpRequest.length());
+            if(LOGGER.isTraceEnabled()) {
+                LOGGER.trace("relpConnection.sendRelpRequestAsync> using preAllocatedTXBuffer for size <{}>", relpRequest.length());
+            }
             byteBuffer = this.preAllocatedTXBuffer;
         }
         relpRequest.write(byteBuffer);
