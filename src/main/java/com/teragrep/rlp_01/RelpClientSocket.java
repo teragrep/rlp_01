@@ -34,6 +34,8 @@ public abstract class RelpClientSocket {
 
     public abstract void setConnectionTimeout(int connectionTimeout);
 
+    public abstract void setKeepAlive(boolean on);
+
     abstract void open(String hostname, int port) throws IOException, TimeoutException;
 
     abstract void write(ByteBuffer byteBuffer) throws IOException, TimeoutException;
