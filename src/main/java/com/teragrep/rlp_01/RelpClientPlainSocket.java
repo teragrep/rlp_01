@@ -65,8 +65,15 @@ class RelpClientPlainSocket extends RelpClientSocket {
         this.connectionTimeout = connectionTimeout;
     }
 
+    @Override
+    public void setKeepAlive(boolean on) {
+        socketKeepAlive = on;
+    }
+
     private int writeTimeout = 0;
     private int connectionTimeout = 0;
+
+    private boolean socketKeepAlive = true;
 
     private SocketChannel socketChannel;
     private Selector poll;
@@ -86,6 +93,8 @@ class RelpClientPlainSocket extends RelpClientSocket {
         this.poll = Selector.open();
 
         this.socketChannel = SocketChannel.open();
+        // set KeepAlive
+        this.socketChannel.socket().setKeepAlive(socketKeepAlive);
         // Make sure our poll will only block
         this.socketChannel.configureBlocking(false);
         // Poll only for connect

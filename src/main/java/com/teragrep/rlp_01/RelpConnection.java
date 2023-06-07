@@ -84,6 +84,10 @@ public class RelpConnection implements RelpSender {
 		relpClientSocket.setConnectionTimeout(timeout);
 	}
 
+    public void setKeepAlive(boolean on) {
+        relpClientSocket.setKeepAlive(on);
+    }
+
 	public int getRxBufferSize() {
 	    return this.rxBufferSize;
     }
@@ -109,7 +113,6 @@ public class RelpConnection implements RelpSender {
         this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(size);
         this.txBufferSize = size;
     }
-
 
 	private RelpConnectionState state;
     
