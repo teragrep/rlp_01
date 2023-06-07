@@ -73,7 +73,7 @@ class RelpClientPlainSocket extends RelpClientSocket {
     private int writeTimeout = 0;
     private int connectionTimeout = 0;
 
-    private boolean socketKeepAlive = false;
+    private boolean socketKeepAlive = true;
 
     private SocketChannel socketChannel;
     private Selector poll;
