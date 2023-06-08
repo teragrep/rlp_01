@@ -17,12 +17,7 @@
 
 package com.teragrep.rlp_01;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.StringTokenizer;
 
 /**
  * The RELP response contains the response header,
@@ -30,8 +25,6 @@ import java.util.StringTokenizer;
  * 
  */
 public class RelpFrameRX extends AbstractRelpFrame {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RelpFrameRX.class);
-
     /**
      * PAYLOAD
      */
@@ -40,8 +33,6 @@ public class RelpFrameRX extends AbstractRelpFrame {
         super(txID, command, dataLength);
         this.data = new byte[src.remaining()];
         src.get(this.data);
-        LOGGER.trace("relpResponse> RelpFrameRX dataLength <{}>", dataLength);
-
     }
 
     public byte[] getData() {

@@ -17,9 +17,6 @@
 
 package com.teragrep.rlp_01;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -27,7 +24,6 @@ import java.nio.charset.StandardCharsets;
  A hand-made parser to process RELP messages.
  */
 public class RelpParser {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RelpParser.class);
 
     private static final int MAX_COMMAND_LENGTH  = 11;
 
@@ -107,7 +103,6 @@ public class RelpParser {
                     if (frameTxnId < 0) {
                         throw new IllegalArgumentException("TXNR must be >= 0");
                     }
-                    LOGGER.trace( "relpParser> txnId <[{}]>", frameTxnId );
                     state = RelpParserState.COMMAND;
                 }
                 else {
@@ -119,8 +114,6 @@ public class RelpParser {
                     commandBuffer.flip();
                     // Spec constraints.
                     frameCommand = byteBufferToAsciiString(commandBuffer);
-                    LOGGER.trace( "relpParser> command <[{}]>", frameCommand);
-
                     if(
                             !frameCommand.equals(RelpCommand.OPEN) &&
                             !frameCommand.equals(RelpCommand.CLOSE) &&
@@ -160,13 +153,9 @@ public class RelpParser {
                     } else {
                         state = RelpParserState.DATA;
                     }
-                    LOGGER.trace( "relpParser> length <[{}]>", frameLength );
                     if (b == '\n') {
                         if (frameLength == 0) {
                             this.isComplete = true;
-                        }
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("relpParser> newline after LENGTH <[{}]>", new String(new byte[]{b}));
                         }
                     }
                 }
@@ -181,26 +170,17 @@ public class RelpParser {
                 if (frameLengthLeft > 0) {
                     frameData.put(b);
                     frameLengthLeft--;
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("relpParser> data b <[{}]> left <{}>", new String(new byte[]{b}), frameLengthLeft);
-                    }
                 }
                 if (frameLengthLeft == 0) {
                     // make ready for consumer
                     frameData.flip();
                     state = RelpParserState.NL;
-
-                    LOGGER.trace("relpParser> data buffer <{}>", frameData);
-
                 }
                 break;
             case NL:
                 if (b == '\n'){
                     // RELP message always ends with a newline byte.
                     this.isComplete = true;
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("relpParser> newline <[{}]>", new String(new byte[]{b}));
-                    }
                 }
                 else {
                     throw new IllegalStateException("relp frame parsing failure");
