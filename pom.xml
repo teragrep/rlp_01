@@ -46,11 +46,11 @@
  
  
 	<dependencies>
-                <!-- tls -->
+                <!-- tls-channel, without slf4j -->
                 <dependency>
-                    <groupId>com.github.marianobarrios</groupId>
-                    <artifactId>tls-channel</artifactId>
-                    <version>0.7.0</version>
+                    <groupId>com.teragrep</groupId>
+                    <artifactId>tls_01</artifactId>
+                    <version>0.7.1</version>
                 </dependency>
                 <dependency>
                         <groupId>org.junit.jupiter</groupId>
