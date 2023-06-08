@@ -19,6 +19,8 @@ package com.teragrep.rlp_01;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.StringTokenizer;
+
 /**
  * An abstract RELP frame class, contains only the header part.
  * 

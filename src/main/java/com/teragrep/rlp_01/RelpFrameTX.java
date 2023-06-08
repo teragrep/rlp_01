@@ -17,9 +17,15 @@
 
 package com.teragrep.rlp_01;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
+import java.util.StringTokenizer;
 
 /**
  * This is the frame for transmitting RELP messages.
@@ -28,6 +34,7 @@ import java.nio.ByteBuffer;
  * 
  */
 public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RelpFrameTX.class);
     /**
      * Creates a syslog message with given (possibly binary) data.
      * 
@@ -51,9 +58,11 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
      * HEADER DATA TRAILER to the byte buffer.
      */
     public void write(ByteBuffer dst) throws IOException {
+        LOGGER.trace("RelpFrameTX.write> entry");
         putHeader(dst);
         putData(dst);
         dst.put((byte)'\n');
+        LOGGER.trace("RelpFrameTX.write> exit");
     }
 
     public int length() throws UnsupportedEncodingException {
@@ -82,10 +91,12 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
      The buffer to write the data into.
      */
     private void putData(ByteBuffer dst) {
+        LOGGER.trace("RelpFrameTX.putData> entry");
         if (this.data != null) {
                 dst.put((byte) ' ');
                 dst.put(this.data);
         }
+        LOGGER.trace("RelpFrameTX.putData> exit");
     }
 
     /**
@@ -96,11 +107,13 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
      *  Shouldn't happen for US-ASCII..
      */
     private void putHeader(ByteBuffer dst) throws UnsupportedEncodingException {
+        LOGGER.trace("RelpFrameTX.putHeader> entry");
         dst.put(Integer.toString(this.transactionNumber).getBytes("US-ASCII"));
         dst.put((byte)' ');
         dst.put(this.command.getBytes("US-ASCII"));
         dst.put((byte)' ');
         dst.put(Integer.toString(this.dataLength).getBytes("US-ASCII"));
+        LOGGER.trace("RelpFrameTX.putHeader> exit");
     }
 
     /**

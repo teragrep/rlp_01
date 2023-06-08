@@ -17,6 +17,9 @@
 
 package com.teragrep.rlp_01;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -28,6 +31,8 @@ import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 class RelpClientPlainSocket extends RelpClientSocket {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RelpClientPlainSocket.class);
+
     private int readTimeout = 0;
 
     @Override
@@ -114,6 +119,14 @@ class RelpClientPlainSocket extends RelpClientSocket {
                     if (this.socketChannel.finishConnect()) {
                         // Connection established
                         notConnected = false;
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("relpConnection> established");
+                            try {
+                                Thread.sleep(1 * 1000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
                 }
                 eventIter.remove();
@@ -126,6 +139,9 @@ class RelpClientPlainSocket extends RelpClientSocket {
     @Override
     void write(ByteBuffer byteBuffer) throws IOException, TimeoutException {
         SelectionKey key = this.socketChannel.register(this.poll, SelectionKey.OP_WRITE);
+        if(LOGGER.isTraceEnabled()) {
+            LOGGER.trace("relpConnection.sendRelpRequestAsync> need to write <{}> ", byteBuffer.hasRemaining());
+        }
 
         while (byteBuffer.hasRemaining()) {
             int nReady = poll.select(this.writeTimeout);
@@ -137,9 +153,13 @@ class RelpClientPlainSocket extends RelpClientSocket {
             while (eventIter.hasNext()) {
                 SelectionKey currentKey = eventIter.next();
                 if (currentKey.isWritable()) {
+                    LOGGER.trace("relpConnection.sendRelpRequestAsync> became writable");
                     this.socketChannel.write(byteBuffer);
                 }
                 eventIter.remove();
+            }
+            if(LOGGER.isTraceEnabled()) {
+                LOGGER.trace("relpConnection.sendRelpRequestAsync> still need to write <{}>", byteBuffer.hasRemaining());
             }
         }
         key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
@@ -165,6 +185,7 @@ class RelpClientPlainSocket extends RelpClientSocket {
         while (eventIter.hasNext()) {
             SelectionKey currentKey = eventIter.next();
             if (currentKey.isReadable()) {
+                LOGGER.trace("relpConnection.readAcks> became readable");
                 readBytes = socketChannel.read(byteBuffer);
             }
             eventIter.remove();

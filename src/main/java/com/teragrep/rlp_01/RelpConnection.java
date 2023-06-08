@@ -17,6 +17,9 @@
 
 package com.teragrep.rlp_01;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.net.ssl.SSLEngine;
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -30,6 +33,8 @@ import java.util.function.Supplier;
  * 
  */
 public class RelpConnection implements RelpSender {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RelpConnection.class);
+
 
     private int rxBufferSize;
     private int txBufferSize;
@@ -145,6 +150,7 @@ public class RelpConnection implements RelpSender {
      * @throws IOException
      */
     public boolean connect(String hostname, int port) throws IOException, IllegalStateException, TimeoutException {
+        LOGGER.trace("relpConnection.connect> entry");
         if (state != RelpConnectionState.CLOSED) {
             throw new IllegalStateException("Session is not closed.");
         }
@@ -161,6 +167,7 @@ public class RelpConnection implements RelpSender {
         long reqId = connectionOpenBatch.putRequest(relpRequest);
         this.sendBatch(connectionOpenBatch);
         boolean openSuccess = connectionOpenBatch.verifyTransaction(reqId);
+        LOGGER.trace("relpConnection.connect> exit with <{}>", openSuccess);
         if (openSuccess) {
             this.state = RelpConnectionState.OPEN;
         }
@@ -183,6 +190,7 @@ public class RelpConnection implements RelpSender {
 
      */
     public boolean disconnect() throws IOException, IllegalStateException, TimeoutException {
+        LOGGER.trace("relpConnection.disconnect> entry");
         if (state != RelpConnectionState.OPEN) {
             throw new IllegalStateException("Session is not in open state, can not close.");
         }
@@ -195,6 +203,7 @@ public class RelpConnection implements RelpSender {
         if (closeResponse != null && closeResponse.dataLength == 0) {
             closeSuccess = true;
         }
+        LOGGER.trace("relpConnection.disconnect> exit with <{}>", closeSuccess);
         if(closeSuccess){
             relpClientSocket.close();
             this.state = RelpConnectionState.CLOSED;
@@ -203,12 +212,14 @@ public class RelpConnection implements RelpSender {
     }
 
     public void commit(RelpBatch relpBatch) throws IOException, IllegalStateException, TimeoutException {
+        LOGGER.trace("relpConnection.commit> entry");
         if (this.state != RelpConnectionState.OPEN) {
             throw new IllegalStateException("Session is not in open state, can not commit.");
         }
         this.state = RelpConnectionState.COMMIT;
         this.sendBatch(relpBatch);
         this.state = RelpConnectionState.OPEN;
+        LOGGER.trace("relpConnection.commit> exit");
     }
 
     /**
@@ -219,6 +230,9 @@ public class RelpConnection implements RelpSender {
 
      */
     private void sendBatch(RelpBatch relpBatch)  throws IOException, TimeoutException, IllegalStateException {
+        if(LOGGER.isTraceEnabled()) {
+            LOGGER.trace("relpConnection.sendBatch> entry with wq len <{}>", relpBatch.getWorkQueueLength());
+        }
         // send a batch of requests..
         RelpFrameTX relpRequest;
 
@@ -234,20 +248,25 @@ public class RelpConnection implements RelpSender {
             sendRelpRequestAsync(relpRequest);
         }
         readAcks(relpBatch);
+        LOGGER.trace("relpConnection.sendBatch> exit");
     }
 
 
 
     private void readAcks(RelpBatch relpBatch)
             throws IOException, TimeoutException, IllegalStateException {
+        LOGGER.trace("relpConnection.readAcks> entry");
 
         int readBytes;
 
         boolean notComplete = this.window.size() > 0;
 
         while (notComplete) {
+            LOGGER.trace("relpConnection.readAcks> need to read");
 
             readBytes = relpClientSocket.read(preAllocatedRXBuffer);
+
+            LOGGER.trace("relpConnection.readAcks> read bytes <{}>", readBytes);
 
             // read from it
             preAllocatedRXBuffer.flip();
@@ -258,6 +277,9 @@ public class RelpConnection implements RelpSender {
                     parser.parse(preAllocatedRXBuffer.get());
 
                     if (parser.isComplete()) {
+                        if(LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("relpConnection.readAcks> read parser complete <{}>", parser.isComplete());
+                        }
                         // one response read successfully
                         int txnId = parser.getTxnId();
                         if (window.isPending(txnId)) {
@@ -283,14 +305,22 @@ public class RelpConnection implements RelpSender {
             // everything should be read by now
             preAllocatedRXBuffer.compact();
         }
+        LOGGER.trace("relpConnection.readAcks> exit");
     }
 
     private void sendRelpRequestAsync(RelpFrameTX relpRequest) throws IOException, TimeoutException {
+        LOGGER.trace("relpConnection.sendRelpRequestAsync> entry");
         ByteBuffer byteBuffer;
         if (relpRequest.length() > this.txBufferSize) {
+            if(LOGGER.isTraceEnabled()) {
+                LOGGER.trace("relpConnection.sendRelpRequestAsync> allocate new txBuffer of size <{}>", relpRequest.length());
+            }
             byteBuffer = ByteBuffer.allocateDirect(relpRequest.length());
         }
         else {
+            if(LOGGER.isTraceEnabled()) {
+                LOGGER.trace("relpConnection.sendRelpRequestAsync> using preAllocatedTXBuffer for size <{}>", relpRequest.length());
+            }
             byteBuffer = this.preAllocatedTXBuffer;
         }
         relpRequest.write(byteBuffer);
@@ -298,5 +328,6 @@ public class RelpConnection implements RelpSender {
         byteBuffer.flip();
         relpClientSocket.write(byteBuffer);
         byteBuffer.clear();
+        LOGGER.trace("relpConnection.sendRelpRequestAsync> exit");
     }
 }
