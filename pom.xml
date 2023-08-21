@@ -19,7 +19,8 @@
     <java.version>1.8</java.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <junit.version>5.9.3</junit.version>
+    <junit.version>5.10.0</junit.version>
+    <teragrep.tls_01.version>0.7.1</teragrep.tls_01.version>
   </properties>
 
   <licenses>
@@ -49,7 +50,7 @@
     <dependency>
       <groupId>com.teragrep</groupId>
       <artifactId>tls_01</artifactId>
-      <version>0.7.1</version>
+      <version>${teragrep.tls_01.version}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
