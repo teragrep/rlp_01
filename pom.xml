@@ -1,71 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	  <packaging>jar</packaging>
-	  <modelVersion>4.0.0</modelVersion>
-	  <artifactId>rlp_01</artifactId>
-	  <name>rlp_01</name>
-	  <description>A minimal RELP implementation.</description>
-	  <url>https://teragrep.com</url>
-	  <groupId>com.teragrep</groupId>
-          <version>${revision}${sha1}${changelist}</version>
-	  <properties>
-	    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-            <revision>0.0.1</revision>
-            <changelist>-SNAPSHOT</changelist>
-            <sha1/>
-	    <java.version>1.8</java.version>
-            <maven.compiler.source>1.8</maven.compiler.source>
-            <maven.compiler.target>1.8</maven.compiler.target>
-            <junit.version>5.9.3</junit.version>
-	  </properties>
-	  
-	  <licenses>
-	  	<license>
-	  		<name>Apache License v2.0</name>
-	  		<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-	  	</license>
-	  </licenses>
-	  
-	  <developers>
-	  	<developer>
-	  		<name>Mikko Kortelainen</name>
-	  		<email>1@teragrep.com</email>
-	  		<organization>Teragrep</organization>
-	  		<organizationUrl>https://teragrep.com</organizationUrl>
-	  	</developer>
-	  </developers>
-	  
-	  <scm>
-	    <connection>scm:git:https://github.com/teragrep/rlp_01.git</connection>
-	    <developerConnection>scm:git:git@github.com:teragrep/rlp_01.git</developerConnection>
-	    <url>https://github.com/teragrep/rlp_01/tree/master</url>
-	  </scm>
- 
- 
-	<dependencies>
-                <!-- tls-channel, without slf4j -->
-                <dependency>
-                    <groupId>com.teragrep</groupId>
-                    <artifactId>tls_01</artifactId>
-                    <version>0.7.1</version>
-                </dependency>
-                <dependency>
-                        <groupId>org.junit.jupiter</groupId>
-                        <artifactId>junit-jupiter-api</artifactId>
-                        <scope>test</scope>
-                        <version>${junit.version}</version>
-                </dependency>
-                <dependency>
-                        <groupId>org.junit.vintage</groupId>
-                        <artifactId>junit-vintage-engine</artifactId>
-                        <scope>test</scope>
-                        <version>${junit.version}</version>
-                </dependency>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <packaging>jar</packaging>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>rlp_01</artifactId>
+  <name>rlp_01</name>
+  <description>A minimal RELP implementation.</description>
+  <url>https://teragrep.com</url>
+  <groupId>com.teragrep</groupId>
+  <version>${revision}${sha1}${changelist}</version>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <revision>0.0.1</revision>
+    <changelist>-SNAPSHOT</changelist>
+    <sha1/>
+    <java.version>1.8</java.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <junit.version>5.9.3</junit.version>
+  </properties>
+
+  <licenses>
+    <license>
+      <name>Apache License v2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Mikko Kortelainen</name>
+      <email>1@teragrep.com</email>
+      <organization>Teragrep</organization>
+      <organizationUrl>https://teragrep.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/teragrep/rlp_01.git</connection>
+    <developerConnection>scm:git:git@github.com:teragrep/rlp_01.git</developerConnection>
+    <url>https://github.com/teragrep/rlp_01/tree/master</url>
+  </scm>
+
+  <dependencies>
+    <!-- tls-channel, without slf4j -->
+    <dependency>
+      <groupId>com.teragrep</groupId>
+      <artifactId>tls_01</artifactId>
+      <version>0.7.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+      <version>${junit.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+      <version>${junit.version}</version>
+    </dependency>
   </dependencies>
- 
+
   <build>
     <directory>${project.basedir}/target</directory>
     <finalName>rlp_01</finalName>
@@ -100,13 +99,13 @@
         </executions>
       </plugin>
       <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-surefire-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
         <version>2.22.2</version>
-	<configuration>
-	  <parallel>all</parallel>
-	  <useUnlimitedThreads>true</useUnlimitedThreads>
-	</configuration>
+        <configuration>
+          <parallel>all</parallel>
+          <useUnlimitedThreads>true</useUnlimitedThreads>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -122,12 +121,12 @@
         </executions>
       </plugin>
       <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-deploy-plugin</artifactId>
-	<version>2.8.2</version>
-	<configuration>
-	  <skip>false</skip>
-	</configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.8.2</version>
+        <configuration>
+          <skip>false</skip>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -158,7 +157,7 @@
   </build>
   <profiles>
     <profile>
-      <id>publish-maven-central</id>      
+      <id>publish-maven-central</id>
       <build>
         <plugins>
           <plugin>
@@ -196,7 +195,7 @@
       </distributionManagement>
     </profile>
     <profile>
-      <id>publish-github-packages</id>      
+      <id>publish-github-packages</id>
       <build>
         <plugins>
           <plugin>
