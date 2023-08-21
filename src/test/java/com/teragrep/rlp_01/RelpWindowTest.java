@@ -29,6 +29,16 @@ public class RelpWindowTest {
     }
 
     @Test
+    public void testGetMultiplePending() {
+        RelpWindow window = new RelpWindow();
+        window.putPending(12, 1234L);
+        window.putPending(13, 555L);
+        Assertions.assertEquals(1234, window.getPending(12), "Got wrong requestId value");
+        Assertions.assertEquals(555, window.getPending(13), "Got wrong requestId value");
+        Assertions.assertEquals(2, window.size(), "Window size is wrong");
+    }
+
+    @Test
     public void testIsPending() {
         RelpWindow window = new RelpWindow();
         window.putPending(12, 1234L);
@@ -39,8 +49,9 @@ public class RelpWindowTest {
     public void testRemovePending() {
         RelpWindow window = new RelpWindow();
         window.putPending(12, 1234L);
+        Assertions.assertTrue(window.isPending(12), "Transaction id is not pending");
         window.removePending(12);
-        Assertions.assertFalse(window.isPending(1234), "Transaction id is pending");
+        Assertions.assertFalse(window.isPending(12), "Transaction id is pending");
     }
 
     @Test
@@ -52,5 +63,9 @@ public class RelpWindowTest {
             window.putPending(i, (long) i);
         }
         Assertions.assertEquals(messages, window.size(), "Unexpected amount of events in window");
+        for(int i=1; i<=messages; i++) {
+            window.removePending(i);
+        }
+        Assertions.assertEquals(0, window.size(), "Unexpected amount of events in window");
     }
 }
