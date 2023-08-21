@@ -102,7 +102,7 @@ public class RelpBatchTest {
         buffer.put(response.getBytes(StandardCharsets.UTF_8));
         buffer.flip();
         batch.putResponse(id, new RelpFrameRX(id.intValue(), RelpCommand.SYSLOG, response.length(), buffer));
-        Assertions.assertTrue(batch.verifyTransactionAll(), "Didn't verify transaction");
+        Assertions.assertTrue(batch.verifyTransaction(id), "Didn't verify transaction");
     }
 
     @Test
