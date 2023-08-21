@@ -17,15 +17,13 @@
 
 package com.teragrep.rlp_01;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class UnitTest {
+public class CodeTest {
 	
 	@Test
 	public void testCode200() {
@@ -35,7 +33,7 @@ public class UnitTest {
 		buffer.put(message.getBytes(StandardCharsets.UTF_8));
 		buffer.flip();
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, len, buffer);
-		assertEquals(frame.getResponseCode(), 200);
+		Assertions.assertEquals(200, frame.getResponseCode(), "Got wrong response code");
 	}
 	
 	@Test
@@ -46,7 +44,7 @@ public class UnitTest {
 		buffer.put(message.getBytes(StandardCharsets.UTF_8));
 		buffer.flip();
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, len, buffer);
-		assertEquals(frame.getResponseCode(), 500);
+		Assertions.assertEquals(500, frame.getResponseCode(), "Got wrong response code");
 	}
 	
 	@Test
@@ -57,7 +55,7 @@ public class UnitTest {
 		buffer.put(message.getBytes(StandardCharsets.UTF_8));
 		buffer.flip();
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, len, buffer);
-		assertEquals(frame.getResponseCode(), 123);
+		Assertions.assertEquals(123, frame.getResponseCode(), "Got wrong response code");
 	}
 	
 	@Test
