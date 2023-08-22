@@ -124,16 +124,13 @@ public class RelpBatch {
 
     public void retryAllFailed() {
         Set<Long> reqIds = this.requests.keySet();
-        List<Long> removeMe = new ArrayList<>();
-        for (Long reqId : reqIds) {
-            if (!this.verifyTransaction(reqId)) {
+        Iterator<Long> reqIt = reqIds.iterator();
+        while(reqIt.hasNext()) {
+            Long reqId = reqIt.next();
+            if (this.verifyTransaction(reqId) == false) {
                 this.retryRequest(reqId);
-            } else {
-                // Removed after iterating list to avoid ConcurrentModificationException
-                removeMe.add(reqId);
             }
         }
-        removeMe.forEach(this::removeRequest);
     }
 
     public void removeTransaction(Long id) {
@@ -143,8 +140,8 @@ public class RelpBatch {
 
     // work queue
     public void retryRequest(Long id) {
-        if(this.requests.containsKey(id)) {
-            this.workQueue.add(id);
+        if( this.requests.containsKey( id ) ) {
+            this.workQueue.add( id );
         }
     }
 

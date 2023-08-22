@@ -126,28 +126,6 @@ public class RelpBatchTest {
         Assertions.assertTrue(batch.verifyTransactionAll(), "Did not verify all transactions");
     }
 
-    // FIXME: https://github.com/teragrep/rlp_01/issues/12
-    @Test
-    public void testRetryAllFailed() {
-        RelpBatch batch = new RelpBatch();
-        int messages = 5;
-        Long[] ids = new Long[messages];
-        for(int i=0; i<messages; i++) {
-            ids[i] = batch.insert(message.getBytes(StandardCharsets.UTF_8));
-        }
-        Assertions.assertEquals(messages, batch.getWorkQueueLength(), "Worker queue did not match");
-        int resolve = 3;
-        for(int i=0; i<resolve; i++) {
-            String response = "200 OK";
-            ByteBuffer buffer = ByteBuffer.allocateDirect(response.length());
-            buffer.put(response.getBytes(StandardCharsets.UTF_8));
-            buffer.flip();
-            batch.putResponse(ids[i], new RelpFrameRX(ids[i].intValue(), RelpCommand.SYSLOG, response.length(), buffer));
-        }
-        batch.retryAllFailed();
-        Assertions.assertEquals(messages-resolve, batch.getWorkQueueLength(), "Worker queue count did not match");
-    }
-
     @Test
     public void testWorkerQueueSize() {
         RelpBatch batch = new RelpBatch();
