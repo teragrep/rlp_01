@@ -128,7 +128,7 @@ public class RelpFrameRXTest {
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, message.length(), createBuffer(message));
 		Assertions.assertEquals(2, frame.getTransactionNumber(), "Initial TransactionNumber is not as expected");
 		frame.setTransactionNumber(3);
-		Assertions.assertEquals(3, frame.getTransactionNumber(), "Initial TransactionNumber is not as expected");
+		Assertions.assertEquals(3, frame.getTransactionNumber(), "Changed TransactionNumber is not as expected");
 	}
 
 	@Test

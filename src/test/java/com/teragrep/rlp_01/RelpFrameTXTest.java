@@ -103,7 +103,7 @@ public class RelpFrameTXTest {
         RelpFrameTX frame = new RelpFrameTX(message.getBytes());
         Assertions.assertEquals(0, frame.getTransactionNumber(), "Initial TransactionNumber is not as expected");
         frame.setTransactionNumber(3);
-        Assertions.assertEquals(3, frame.getTransactionNumber(), "Initial TransactionNumber is not as expected");
+        Assertions.assertEquals(3, frame.getTransactionNumber(), "Changed TransactionNumber is not as expected");
     }
 
     @Test
