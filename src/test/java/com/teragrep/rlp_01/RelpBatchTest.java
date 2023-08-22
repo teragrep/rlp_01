@@ -47,7 +47,7 @@ public class RelpBatchTest {
     @Test
     public void testGetNullRequest() {
         RelpBatch batch = new RelpBatch();
-        RelpFrameTX frame = batch.getRequest(1L);
+        RelpFrameTX frame = batch.getRequest(0L);
         Assertions.assertNull(frame, "Frame was not null");
     }
 
@@ -126,8 +126,7 @@ public class RelpBatchTest {
         Assertions.assertTrue(batch.verifyTransactionAll(), "Did not verify all transactions");
     }
 
-    // FIXME: getWorkQueueLength() should decrease as retrying failed ones?
-    @Disabled
+    // FIXME: https://github.com/teragrep/rlp_01/issues/12
     @Test
     public void testRetryAllFailed() {
         RelpBatch batch = new RelpBatch();

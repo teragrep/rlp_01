@@ -59,8 +59,8 @@ public class RelpWindowTest {
         RelpWindow window = new RelpWindow();
         Assertions.assertEquals(0, window.size(), "Unexpected amount of events in window");
         int messages = 5;
-        for(int i=1; i<=messages; i++) {
-            window.putPending(i, (long) i);
+        for(Long i=1L; i<=messages; i++) {
+            window.putPending(i.intValue(), i);
         }
         Assertions.assertEquals(messages, window.size(), "Unexpected amount of events in window");
         for(int i=1; i<=messages; i++) {
