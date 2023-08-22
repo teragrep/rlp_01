@@ -59,7 +59,7 @@ public class RelpFrameTXTest {
     public void testCommandSyslog() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.SYSLOG);
         Assertions.assertEquals("0 syslog 0 ", frame.toString(),"Frame is not as expected");
-        Assertions.assertEquals(RelpCommand.SYSLOG, frame.getCommand(), "Open command was not as expected");
+        Assertions.assertEquals(RelpCommand.SYSLOG, frame.getCommand(), "Syslog command was not as expected");
     }
 
     @Test
@@ -74,28 +74,28 @@ public class RelpFrameTXTest {
                 frame.toString(),
                 "Frame is not as expected"
         );
-        Assertions.assertEquals(RelpCommand.SYSLOG, frame.getCommand(), "Open command was not as expected");
+        Assertions.assertEquals(RelpCommand.SYSLOG, frame.getCommand(), "Syslog command was not as expected");
     }
 
     @Test
     public void testCommandAbort() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.ABORT);
         Assertions.assertEquals("0 abort 0 ", frame.toString(),"Frame is not as expected");
-        Assertions.assertEquals(RelpCommand.ABORT, frame.getCommand(), "Open command was not as expected");
+        Assertions.assertEquals(RelpCommand.ABORT, frame.getCommand(), "Abort command was not as expected");
     }
 
     @Test
     public void testCommandClose() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.CLOSE);
         Assertions.assertEquals("0 close 0 ", frame.toString(),"Frame is not as expected");
-        Assertions.assertEquals(RelpCommand.CLOSE, frame.getCommand(), "Open command was not as expected");
+        Assertions.assertEquals(RelpCommand.CLOSE, frame.getCommand(), "Close command was not as expected");
     }
 
     @Test
     public void testCommandServerClose() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.SERVER_CLOSE);
         Assertions.assertEquals("0 serverclose 0 ", frame.toString(),"Frame is not as expected");
-        Assertions.assertEquals(RelpCommand.SERVER_CLOSE, frame.getCommand(), "Open command was not as expected");
+        Assertions.assertEquals(RelpCommand.SERVER_CLOSE, frame.getCommand(), "ServerClose command was not as expected");
     }
 
     @Test

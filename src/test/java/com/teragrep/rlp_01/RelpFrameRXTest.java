@@ -84,42 +84,42 @@ public class RelpFrameRXTest {
 	public void testGetCommandSyslog() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.SYSLOG, frame.getCommand(), "Command was not as expected");
+		Assertions.assertEquals(RelpCommand.SYSLOG, frame.getCommand(), "Syslog command was not as expected");
 	}
 
 	@Test
 	public void testGetCommandClose() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.CLOSE, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.CLOSE, frame.getCommand(), "Command was not as expected");
+		Assertions.assertEquals(RelpCommand.CLOSE, frame.getCommand(), "Close command was not as expected");
 	}
 
 	@Test
 	public void testGetCommandServerClose() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SERVER_CLOSE, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.SERVER_CLOSE, frame.getCommand(), "Command was not as expected");
+		Assertions.assertEquals(RelpCommand.SERVER_CLOSE, frame.getCommand(), "ServerClose command was not as expected");
 	}
 
 	@Test
 	public void testGetCommandOpen() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.OPEN, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.OPEN, frame.getCommand(), "Command was not as expected");
+		Assertions.assertEquals(RelpCommand.OPEN, frame.getCommand(), "Open command was not as expected");
 	}
 
 	@Test
 	public void testGetCommandResponse() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.RESPONSE, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.RESPONSE, frame.getCommand(), "Command was not as expected");
+		Assertions.assertEquals(RelpCommand.RESPONSE, frame.getCommand(), "Response command was not as expected");
 	}
 
 	@Test
 	public void testGetCommandAbort() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.ABORT, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.ABORT, frame.getCommand(), "Command was not as expected");
+		Assertions.assertEquals(RelpCommand.ABORT, frame.getCommand(), "Abort command was not as expected");
 	}
 
 	@Test
