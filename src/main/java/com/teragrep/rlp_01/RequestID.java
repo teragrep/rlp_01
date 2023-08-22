@@ -17,11 +17,11 @@
 
 package com.teragrep.rlp_01;
 
-public class requestID {
+public class RequestID {
 
     private long requestIdentifier;
 
-    requestID() {
+    RequestID() {
         this.requestIdentifier = 0;
     }
 

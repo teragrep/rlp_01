@@ -28,7 +28,7 @@ import java.util.*;
  */
 public class RelpBatch {
 
-    private final requestID reqID;
+    private final RequestID reqID;
 
     private final TreeMap<Long, RelpFrameTX> requests;
     private final TreeMap<Long, RelpFrameRX> responses;
@@ -37,7 +37,7 @@ public class RelpBatch {
     private final TreeSet<Long> workQueue;
 
     public RelpBatch() {
-        this.reqID = new requestID();
+        this.reqID = new RequestID();
         this.requests = new TreeMap<Long, RelpFrameTX>();
         this.responses = new TreeMap<Long, RelpFrameRX>();
         this.workQueue = new TreeSet<>();
