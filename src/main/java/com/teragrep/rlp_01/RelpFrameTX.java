@@ -93,10 +93,9 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
      * Writes a HEADER part of the RELP message to the byte buffer.
      *
      * @param dst
-     * @throws UnsupportedEncodingException
      *  Shouldn't happen for US-ASCII..
      */
-    private void putHeader(ByteBuffer dst) throws UnsupportedEncodingException {
+    private void putHeader(ByteBuffer dst) {
         dst.put(Integer.toString(this.transactionNumber).getBytes(StandardCharsets.US_ASCII));
         dst.put((byte)' ');
         dst.put(this.command.getBytes(StandardCharsets.US_ASCII));
