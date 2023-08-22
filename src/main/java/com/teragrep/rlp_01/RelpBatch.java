@@ -17,10 +17,7 @@
 
 package com.teragrep.rlp_01;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * A class that is used to send RELP messages to the server.
@@ -127,13 +124,16 @@ public class RelpBatch {
 
     public void retryAllFailed() {
         Set<Long> reqIds = this.requests.keySet();
-        Iterator<Long> reqIt = reqIds.iterator();
-        while(reqIt.hasNext()) {
-            Long reqId = reqIt.next();
-            if (this.verifyTransaction(reqId) == false) {
+        List<Long> removeMe = new ArrayList<>();
+        for (Long reqId : reqIds) {
+            if (!this.verifyTransaction(reqId)) {
                 this.retryRequest(reqId);
+            } else {
+                // Removed after iterating list to avoid ConcurrentModificationException
+                removeMe.add(reqId);
             }
         }
+        removeMe.forEach(this::removeRequest);
     }
 
     public void removeTransaction(Long id) {
@@ -143,8 +143,8 @@ public class RelpBatch {
 
     // work queue
     public void retryRequest(Long id) {
-        if( this.requests.containsKey( id ) ) {
-            this.workQueue.add( id );
+        if(this.requests.containsKey(id) && !this.workQueue.contains(id)) {
+            this.workQueue.add(id);
         }
     }
 
