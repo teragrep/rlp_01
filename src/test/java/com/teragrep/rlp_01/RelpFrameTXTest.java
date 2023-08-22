@@ -109,7 +109,7 @@ public class RelpFrameTXTest {
     @Test
     public void testExplicitCommand() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.OPEN, message.getBytes());
-        Assertions.assertEquals(RelpCommand.OPEN, frame.getCommand(), "Default frame is not as expected");
+        Assertions.assertEquals(RelpCommand.OPEN, frame.getCommand(), "Explicit command is not as expected");
     }
 
     @Test
