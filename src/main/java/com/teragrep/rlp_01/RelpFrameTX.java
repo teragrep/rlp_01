@@ -20,6 +20,7 @@ package com.teragrep.rlp_01;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * This is the frame for transmitting RELP messages.
@@ -56,12 +57,12 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
         dst.put((byte)'\n');
     }
 
-    public int length() throws UnsupportedEncodingException {
-        int txn = Integer.toString(this.transactionNumber).getBytes("US-ASCII").length;
+    public int length() {
+        int txn = Integer.toString(this.transactionNumber).getBytes(StandardCharsets.US_ASCII).length;
         int sp1 = 1;
-        int command = this.command.getBytes("US-ASCII").length;
+        int command = this.command.getBytes(StandardCharsets.US_ASCII).length;
         int sp2 = 1;
-        int length = Integer.toString(this.dataLength).getBytes("US-ASCII").length;
+        int length = Integer.toString(this.dataLength).getBytes(StandardCharsets.US_ASCII).length;
         int sp3 = 1;
         int data;
         if (this.data == null) {
@@ -96,11 +97,11 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
      *  Shouldn't happen for US-ASCII..
      */
     private void putHeader(ByteBuffer dst) throws UnsupportedEncodingException {
-        dst.put(Integer.toString(this.transactionNumber).getBytes("US-ASCII"));
+        dst.put(Integer.toString(this.transactionNumber).getBytes(StandardCharsets.US_ASCII));
         dst.put((byte)' ');
-        dst.put(this.command.getBytes("US-ASCII"));
+        dst.put(this.command.getBytes(StandardCharsets.US_ASCII));
         dst.put((byte)' ');
-        dst.put(Integer.toString(this.dataLength).getBytes("US-ASCII"));
+        dst.put(Integer.toString(this.dataLength).getBytes(StandardCharsets.US_ASCII));
     }
 
     /**
@@ -108,10 +109,6 @@ public class RelpFrameTX extends AbstractRelpFrame implements Writeable {
      */
     @Override
     public String toString() {
-        try {
-            return this.transactionNumber + " " + this.command + " " + this.dataLength + " " + (this.data != null ? new String(this.data, "UTF-8") : "");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        return this.transactionNumber + " " + this.command + " " + this.dataLength + " " + (this.data != null ? new String(this.data, StandardCharsets.UTF_8) : "");
     }
 }

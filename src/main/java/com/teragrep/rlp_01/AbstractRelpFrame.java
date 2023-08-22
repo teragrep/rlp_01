@@ -19,6 +19,8 @@ package com.teragrep.rlp_01;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+
 /**
  * An abstract RELP frame class, contains only the header part.
  * 
@@ -90,12 +92,7 @@ public abstract class AbstractRelpFrame {
         if (dataLength > 0) {
             byte[] bytes = new byte[dataLength];
             src.get(bytes);
-            try {
-                return new String(bytes, "US-ASCII");
-            } catch (UnsupportedEncodingException e) {
-                // this really shouldn't happen..
-                throw new RuntimeException(e);
-            }
+            return new String(bytes, StandardCharsets.US_ASCII);
         } else {
             return null;
         }

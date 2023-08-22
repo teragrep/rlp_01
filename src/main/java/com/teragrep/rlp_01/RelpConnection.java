@@ -20,6 +20,7 @@ package com.teragrep.rlp_01;
 import javax.net.ssl.SSLEngine;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
@@ -41,11 +42,7 @@ public class RelpConnection implements RelpSender {
     private final static byte[] OFFER;
     
     static {
-        try {
-            OFFER = ("\nrelp_version=0\nrelp_software=RLP-01\ncommands=" + RelpCommand.SYSLOG + "\n").getBytes("US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        OFFER = ("\nrelp_version=0\nrelp_software=RLP-01\ncommands=" + RelpCommand.SYSLOG + "\n").getBytes(StandardCharsets.US_ASCII);
     }
 
     private enum RelpConnectionState {
