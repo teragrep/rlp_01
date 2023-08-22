@@ -42,28 +42,28 @@ public class RelpFrameTXTest {
     }
 
     @Test
-    public void testConstructorOpen() {
+    public void testCommandOpen() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.OPEN);
         Assertions.assertEquals("0 open 0 ", frame.toString(),"Frame is not as expected");
         Assertions.assertEquals(RelpCommand.OPEN, frame.getCommand(), "Open command was not as expected");
     }
 
     @Test
-    public void testConstructorResponse() {
+    public void testCommandResponse() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.RESPONSE);
         Assertions.assertEquals("0 rsp 0 ", frame.toString(),"Frame is not as expected");
         Assertions.assertEquals(RelpCommand.RESPONSE, frame.getCommand(), "Response command was not as expected");
     }
 
     @Test
-    public void testConstructorSyslog() {
+    public void testCommandSyslog() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.SYSLOG);
         Assertions.assertEquals("0 syslog 0 ", frame.toString(),"Frame is not as expected");
         Assertions.assertEquals(RelpCommand.SYSLOG, frame.getCommand(), "Open command was not as expected");
     }
 
     @Test
-    public void testConstructorSyslogWithMessage() {
+    public void testCommandSyslogWithMessage() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.SYSLOG, message.getBytes());
         Assertions.assertEquals(
                 String.format(
@@ -78,21 +78,21 @@ public class RelpFrameTXTest {
     }
 
     @Test
-    public void testConstructorAbort() {
+    public void testCommandAbort() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.ABORT);
         Assertions.assertEquals("0 abort 0 ", frame.toString(),"Frame is not as expected");
         Assertions.assertEquals(RelpCommand.ABORT, frame.getCommand(), "Open command was not as expected");
     }
 
     @Test
-    public void testConstructorClose() {
+    public void testCommandClose() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.CLOSE);
         Assertions.assertEquals("0 close 0 ", frame.toString(),"Frame is not as expected");
         Assertions.assertEquals(RelpCommand.CLOSE, frame.getCommand(), "Open command was not as expected");
     }
 
     @Test
-    public void testConstructorServerClose() {
+    public void testCommandServerClose() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.SERVER_CLOSE);
         Assertions.assertEquals("0 serverclose 0 ", frame.toString(),"Frame is not as expected");
         Assertions.assertEquals(RelpCommand.SERVER_CLOSE, frame.getCommand(), "Open command was not as expected");
