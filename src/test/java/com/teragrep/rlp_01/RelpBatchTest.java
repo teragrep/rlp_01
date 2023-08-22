@@ -126,16 +126,17 @@ public class RelpBatchTest {
         Assertions.assertTrue(batch.verifyTransactionAll(), "Did not verify all transactions");
     }
 
-    // FIXME: https://github.com/teragrep/rlp_01/issues/12
     @Test
     public void testRetryAllFailed() {
         RelpBatch batch = new RelpBatch();
         int messages = 5;
         Long[] ids = new Long[messages];
+        // Fill 5 messages
         for(int i=0; i<messages; i++) {
             ids[i] = batch.insert(message.getBytes(StandardCharsets.UTF_8));
         }
         Assertions.assertEquals(messages, batch.getWorkQueueLength(), "Worker queue did not match");
+        // Resolve 3 of them
         int resolve = 3;
         for(int i=0; i<resolve; i++) {
             String response = "200 OK";
@@ -144,8 +145,30 @@ public class RelpBatchTest {
             buffer.flip();
             batch.putResponse(ids[i], new RelpFrameRX(ids[i].intValue(), RelpCommand.SYSLOG, response.length(), buffer));
         }
+        // Clean work queue to pretend we have sent all
+        int len = batch.getWorkQueueLength();
+        for(int i=0; i<len; i++) {
+            batch.popWorkQueue();
+        }
+        // Refill the work queue as some wasn't sent
         batch.retryAllFailed();
         Assertions.assertEquals(messages-resolve, batch.getWorkQueueLength(), "Worker queue count did not match");
+        // Resolve last messages
+        for(int i=resolve; i<messages; i++) {
+            String response = "200 OK";
+            ByteBuffer buffer = ByteBuffer.allocateDirect(response.length());
+            buffer.put(response.getBytes(StandardCharsets.UTF_8));
+            buffer.flip();
+            batch.putResponse(ids[i], new RelpFrameRX(ids[i].intValue(), RelpCommand.SYSLOG, response.length(), buffer));
+        }
+        // Resolve work queue again
+        len = batch.getWorkQueueLength();
+        for(int i=0; i<len; i++) {
+            batch.popWorkQueue();
+        }
+        // Refill the work queue
+        batch.retryAllFailed();
+        Assertions.assertEquals(0, batch.getWorkQueueLength(), "Worker queue count did not match");
     }
 
     @Test

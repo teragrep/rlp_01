@@ -17,10 +17,7 @@
 
 package com.teragrep.rlp_01;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * A class that is used to send RELP messages to the server.
@@ -37,13 +34,13 @@ public class RelpBatch {
     private TreeMap<Long, RelpFrameRX> responses;
 
     // Not processed queue, for asynchronous use.
-    private LinkedList<Long> workQueue;
+    private TreeSet<Long> workQueue;
 
     public RelpBatch() {
         this.reqID = new requestID();
         this.requests = new TreeMap<Long, RelpFrameTX>();
         this.responses = new TreeMap<Long, RelpFrameRX>();
-        this.workQueue = new LinkedList<Long>();
+        this.workQueue = new TreeSet<>();
     }
 
     /**
@@ -153,7 +150,7 @@ public class RelpBatch {
     }
 
     public Long popWorkQueue() {
-        return this.workQueue.pop();
+        return this.workQueue.pollFirst();
     }
 }
  
