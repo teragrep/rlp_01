@@ -28,13 +28,13 @@ import java.util.*;
  */
 public class RelpBatch {
 
-    private requestID reqID;
+    private final requestID reqID;
 
-    private TreeMap<Long, RelpFrameTX> requests;
-    private TreeMap<Long, RelpFrameRX> responses;
+    private final TreeMap<Long, RelpFrameTX> requests;
+    private final TreeMap<Long, RelpFrameRX> responses;
 
     // Not processed queue, for asynchronous use.
-    private TreeSet<Long> workQueue;
+    private final TreeSet<Long> workQueue;
 
     public RelpBatch() {
         this.reqID = new requestID();
@@ -73,12 +73,7 @@ public class RelpBatch {
     }
 
     public RelpFrameTX getRequest(Long id) {
-        if (this.requests.containsKey(id)) {
-            return this.requests.get(id);
-        }
-        else {
-            return null;
-        }
+        return this.requests.getOrDefault(id, null);
     }
 
     public void removeRequest(Long id) {
@@ -87,12 +82,7 @@ public class RelpBatch {
     }
 
     public RelpFrameRX getResponse(Long id) {
-        if (this.responses.containsKey(id)) {
-            return this.responses.get(id);
-        }
-        else {
-            return null;
-        }
+        return this.responses.getOrDefault(id, null);
     }
 
     public void putResponse(Long id, RelpFrameRX response) {
@@ -102,20 +92,15 @@ public class RelpBatch {
     }
 
     public boolean verifyTransaction(Long id) {
-        if( this.requests.containsKey( id ) &&
-                this.getResponse( id ) != null &&
-                this.responses.get( id ).getResponseCode() == 200 ) {
-            return true;
-        } else {
-            return false;
-        }
+        return this.requests.containsKey(id) &&
+                this.getResponse(id) != null &&
+                this.responses.get(id).getResponseCode() == 200;
     }
 
     public boolean verifyTransactionAll() {
         Set<Long> reqIds = this.requests.keySet();
-        Iterator<Long> reqIt = reqIds.iterator();
-        while(reqIt.hasNext()) {
-            if (this.verifyTransaction(reqIt.next()) == false) {
+        for (Long reqId : reqIds) {
+            if (!this.verifyTransaction(reqId)) {
                 return false;
             }
         }
@@ -124,10 +109,8 @@ public class RelpBatch {
 
     public void retryAllFailed() {
         Set<Long> reqIds = this.requests.keySet();
-        Iterator<Long> reqIt = reqIds.iterator();
-        while(reqIt.hasNext()) {
-            Long reqId = reqIt.next();
-            if (this.verifyTransaction(reqId) == false) {
+        for (Long reqId : reqIds) {
+            if (!this.verifyTransaction(reqId)) {
                 this.retryRequest(reqId);
             }
         }
