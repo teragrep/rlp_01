@@ -34,13 +34,13 @@ public class RelpBatch {
     private TreeMap<Long, RelpFrameRX> responses;
 
     // Not processed queue, for asynchronous use.
-    private LinkedList<Long> workQueue;
+    private TreeSet<Long> workQueue;
 
     public RelpBatch() {
         this.reqID = new requestID();
         this.requests = new TreeMap<Long, RelpFrameTX>();
         this.responses = new TreeMap<Long, RelpFrameRX>();
-        this.workQueue = new LinkedList<Long>();
+        this.workQueue = new TreeSet<>();
     }
 
     /**
@@ -143,7 +143,7 @@ public class RelpBatch {
 
     // work queue
     public void retryRequest(Long id) {
-        if(this.requests.containsKey(id) && !this.workQueue.contains(id)) {
+        if(this.requests.containsKey(id)) {
             this.workQueue.add(id);
         }
     }
@@ -153,7 +153,7 @@ public class RelpBatch {
     }
 
     public Long popWorkQueue() {
-        return this.workQueue.pop();
+        return this.workQueue.pollFirst();
     }
 }
  
