@@ -134,9 +134,7 @@ public class RelpParserTest {
 
     @Test
     public void testMultipleLastNewlines() {
-        RelpParser parser = createParser("0 rsp 3 six\n\n\n\n\n\n");
-        Assertions.assertEquals("six", StandardCharsets.UTF_8.decode(parser.getData()).toString(), "parser getData() differs");
-        Assertions.assertTrue(parser.isComplete(), "parser isComplete() differs");
+        Assertions.assertThrows(IllegalStateException.class, () -> createParser("0 rsp 3 six\n\n\n\n\n\n"));
     }
 
     @Test
