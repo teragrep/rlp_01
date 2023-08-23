@@ -138,6 +138,11 @@ public class RelpParserTest {
     }
 
     @Test
+    public void testDataAfterLastNewline() {
+        Assertions.assertThrows(IllegalStateException.class, () -> createParser("0 rsp 3 six\n\nBonjour"));
+    }
+
+    @Test
     public void testMultipleMessagesInRow() {
         String message = "0 rsp 3 six\n1 rsp 4 four\n2 rsp 5 five!\n";
         HashMap<Integer, String> results = new HashMap<>();
