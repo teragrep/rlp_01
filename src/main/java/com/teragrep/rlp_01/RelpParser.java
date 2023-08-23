@@ -73,8 +73,11 @@ public class RelpParser {
         return this.frameData;
     }
 
-    public RelpParserState getState() {
-        return state;
+    @Override
+    public String toString() {
+        return "RelpParser{" +
+                "state=" + state +
+                '}';
     }
 
     private enum RelpParserState {
@@ -95,6 +98,9 @@ public class RelpParser {
      Byte to be parsed.
      */
     public void parse(byte b) {
+        if(this.isComplete) {
+            throw new IllegalStateException("parser was not reset after completing");
+        }
         switch (this.state) {
             case TXN:
                 if (b == ' '){
