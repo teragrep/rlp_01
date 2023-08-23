@@ -29,21 +29,21 @@ public class RelpFrameRXTest {
 	public void testCode200() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, message.length(), createBuffer(message));
-		Assertions.assertEquals(200, frame.getResponseCode(), "Got wrong response code");
+		Assertions.assertEquals(200, frame.getResponseCode(), "Response code differs");
 	}
 	
 	@Test
 	public void testCode500() {
 		String message = "500 NOK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, message.length(), createBuffer(message));
-		Assertions.assertEquals(500, frame.getResponseCode(), "Got wrong response code");
+		Assertions.assertEquals(500, frame.getResponseCode(), "Response code differs");
 	}
 	
 	@Test
 	public void testCode123() {
 		String message = "123 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, message.length(), createBuffer(message));
-		Assertions.assertEquals(123, frame.getResponseCode(), "Got wrong response code");
+		Assertions.assertEquals(123, frame.getResponseCode(), "Response code differs");
 	}
 	
 	@Test
@@ -77,58 +77,58 @@ public class RelpFrameRXTest {
 	public void testGetData() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, message.length(), createBuffer(message));
-		Assertions.assertEquals(message, new String(frame.getData()), "Message is not as expected");
+		Assertions.assertEquals(message, new String(frame.getData()), "frame getData() differs");
 	}
 
 	@Test
 	public void testGetCommandSyslog() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.SYSLOG, frame.getCommand(), "Syslog command was not as expected");
+		Assertions.assertEquals(RelpCommand.SYSLOG, frame.getCommand(), "Syslog command differs");
 	}
 
 	@Test
 	public void testGetCommandClose() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.CLOSE, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.CLOSE, frame.getCommand(), "Close command was not as expected");
+		Assertions.assertEquals(RelpCommand.CLOSE, frame.getCommand(), "Close command differs");
 	}
 
 	@Test
 	public void testGetCommandServerClose() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SERVER_CLOSE, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.SERVER_CLOSE, frame.getCommand(), "ServerClose command was not as expected");
+		Assertions.assertEquals(RelpCommand.SERVER_CLOSE, frame.getCommand(), "ServerClose command differs");
 	}
 
 	@Test
 	public void testGetCommandOpen() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.OPEN, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.OPEN, frame.getCommand(), "Open command was not as expected");
+		Assertions.assertEquals(RelpCommand.OPEN, frame.getCommand(), "Open command differs");
 	}
 
 	@Test
 	public void testGetCommandResponse() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.RESPONSE, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.RESPONSE, frame.getCommand(), "Response command was not as expected");
+		Assertions.assertEquals(RelpCommand.RESPONSE, frame.getCommand(), "Response command differs");
 	}
 
 	@Test
 	public void testGetCommandAbort() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.ABORT, message.length(), createBuffer(message));
-		Assertions.assertEquals(RelpCommand.ABORT, frame.getCommand(), "Abort command was not as expected");
+		Assertions.assertEquals(RelpCommand.ABORT, frame.getCommand(), "Abort command differs");
 	}
 
 	@Test
 	public void testSetTransactionId() {
 		String message = "200 OK";
 		RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, message.length(), createBuffer(message));
-		Assertions.assertEquals(2, frame.getTransactionNumber(), "Initial TransactionNumber is not as expected");
+		Assertions.assertEquals(2, frame.getTransactionNumber(), "Initial TransactionNumber differs");
 		frame.setTransactionNumber(3);
-		Assertions.assertEquals(3, frame.getTransactionNumber(), "Changed TransactionNumber is not as expected");
+		Assertions.assertEquals(3, frame.getTransactionNumber(), "Changed TransactionNumber differs");
 	}
 
 	@Test
@@ -142,7 +142,7 @@ public class RelpFrameRXTest {
 						message
 				),
 				frame.toString(),
-				"ToString() is not as expected"
+				"frame toString() differs"
 		);
 	}
 
