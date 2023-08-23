@@ -161,6 +161,54 @@ public class RelpParserTest {
         Assertions.assertEquals("five!", results.get(2), "parser getData() differs");
     }
 
+    @Test
+    public void testToStringStateZeroLengthNewline() {
+        RelpParser parser = createParser("0 syslog 0\n");
+        Assertions.assertEquals("RelpParser{state=NL}", parser.toString(), "Parser toString() differs");
+    }
+
+    @Test
+    public void testToStringStateZeroLengthSpace() {
+        RelpParser parser = createParser("0 syslog 0 ");
+        Assertions.assertEquals("RelpParser{state=NL}", parser.toString(), "Parser toString() differs");
+    }
+
+    @Test
+    public void testToStringStateTxn() {
+        RelpParser parser = createParser("0");
+        Assertions.assertEquals("RelpParser{state=TXN}", parser.toString(), "Parser toString() differs");
+    }
+
+    @Test
+    public void testToStringStateCommand() {
+        RelpParser parser = createParser("0 syslog");
+        Assertions.assertEquals("RelpParser{state=COMMAND}", parser.toString(), "Parser toString() differs");
+    }
+
+    @Test
+    public void testToStringStateLength() {
+        RelpParser parser = createParser("0 syslog 3");
+        Assertions.assertEquals("RelpParser{state=LENGTH}", parser.toString(), "Parser toString() differs");
+    }
+
+    @Test
+    public void testToStringStateDataIncomplete() {
+        RelpParser parser = createParser("0 syslog 3 he");
+        Assertions.assertEquals("RelpParser{state=DATA}", parser.toString(), "Parser toString() differs");
+    }
+
+    @Test
+    public void testToStringStateDataComplete() {
+        RelpParser parser = createParser("0 syslog 3 hey");
+        Assertions.assertEquals("RelpParser{state=NL}", parser.toString(), "Parser toString() differs");
+    }
+
+    @Test
+    public void testToStringStateNLAfterData() {
+        RelpParser parser = createParser("0 syslog 3 hey\n");
+        Assertions.assertEquals("RelpParser{state=NL}", parser.toString(), "Parser toString() differs");
+    }
+
     @Disabled(value="Triggers BufferOverflow and is not gracefully handled")
     @Test
     public void testVeryLongTxnId() {
