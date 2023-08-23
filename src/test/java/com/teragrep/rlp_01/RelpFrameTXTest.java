@@ -20,7 +20,6 @@ package com.teragrep.rlp_01;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -113,7 +112,7 @@ public class RelpFrameTXTest {
     }
 
     @Test
-    public void testWrite() throws UnsupportedEncodingException {
+    public void testWrite() {
         RelpFrameTX frame = new RelpFrameTX(RelpCommand.SYSLOG, message.getBytes());
         ByteBuffer buffer = ByteBuffer.allocateDirect(frame.length());
         Assertions.assertDoesNotThrow(() -> frame.write(buffer));
@@ -130,7 +129,7 @@ public class RelpFrameTXTest {
     }
 
     @Test
-    public void testLength() throws UnsupportedEncodingException {
+    public void testLength() {
         RelpFrameTX frame = new RelpFrameTX(message.getBytes());
         Assertions.assertEquals(
                 String.format(
