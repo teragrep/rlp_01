@@ -73,6 +73,10 @@ public class RelpParser {
         return this.frameData;
     }
 
+    public RelpParserState getState() {
+        return state;
+    }
+
     private enum RelpParserState {
         TXN,
         COMMAND,
