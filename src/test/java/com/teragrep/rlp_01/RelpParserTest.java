@@ -44,7 +44,7 @@ public class RelpParserTest {
 
     @Test
     public void testNegativeTxnr() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> createParser("-2 rsp -6 200 OK\n"));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> createParser("-2 rsp 6 200 OK\n"));
     }
 
     @Test
