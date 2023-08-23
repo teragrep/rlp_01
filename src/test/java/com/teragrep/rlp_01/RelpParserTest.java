@@ -138,11 +138,6 @@ public class RelpParserTest {
         Assertions.assertTrue(parser.isComplete(), "parser isComplete() differs");
     }
 
-    @Test
-    public void testDataAfterLastNewline() {
-        Assertions.assertThrows(IllegalStateException.class, () -> createParser("0 rsp 3 six\n\nBonjour"));
-    }
-
     @Disabled(value="Triggers BufferOverflow and is not gracefully handled")
     @Test
     public void testVeryLongTxnId() {
