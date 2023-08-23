@@ -134,6 +134,7 @@ public class RelpParserTest {
 
     @Test
     public void testMultipleLastNewlines() {
+        // Feeding the parser after it has finished causes Illegal State
         Assertions.assertThrows(IllegalStateException.class, () -> createParser("0 rsp 3 six\n\n\n\n\n\n"));
     }
 
