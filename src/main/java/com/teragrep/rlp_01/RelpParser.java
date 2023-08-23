@@ -170,7 +170,6 @@ public class RelpParser {
                 }
                 break;
             case DATA:
-                if(this.isComplete) this.state = RelpParserState.NL;
                 // Parser will only read the given length of data. If the message
                 // gives data bigger than the frameLength, bad luck for them.
                 if (frameLengthLeft > 0) {
