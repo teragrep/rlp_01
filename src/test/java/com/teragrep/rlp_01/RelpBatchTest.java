@@ -19,14 +19,13 @@
 package com.teragrep.rlp_01;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class RelpBatchTest {
-    private static final String message = "syslog message";
+    private static final String message = "Message With Ünïcödë Characters";
 
     @Test
     public void testInsert() {
@@ -36,7 +35,7 @@ public class RelpBatchTest {
         Assertions.assertEquals(
                 String.format(
                         "0 syslog %s %s",
-                        message.length(),
+                        message.getBytes().length,
                         message
                 ),
                 frame.toString(),
@@ -79,7 +78,8 @@ public class RelpBatchTest {
         RelpBatch batch = new RelpBatch();
         Long id = batch.insert(message.getBytes(StandardCharsets.UTF_8));
         Assertions.assertNull(batch.getResponse(id), "Got a response but shouldn't have");
-        batch.putResponse(id, new RelpFrameRX(id.intValue(), "X", 1, ByteBuffer.allocateDirect(1)));
+        String response = "200 OK";
+        batch.putResponse(id, new RelpFrameRX(id.intValue(), RelpCommand.SYSLOG, response.length(), createResponseBuffer(response)));
         Assertions.assertNotNull(batch.getResponse(id), "Got a null response");
     }
 
@@ -98,10 +98,7 @@ public class RelpBatchTest {
         Long id = batch.insert(message.getBytes(StandardCharsets.UTF_8));
         Assertions.assertFalse(batch.verifyTransaction(id), "Verified transaction");
         String response = "200 OK";
-        ByteBuffer buffer = ByteBuffer.allocateDirect(response.length());
-        buffer.put(response.getBytes(StandardCharsets.UTF_8));
-        buffer.flip();
-        batch.putResponse(id, new RelpFrameRX(id.intValue(), RelpCommand.SYSLOG, response.length(), buffer));
+        batch.putResponse(id, new RelpFrameRX(id.intValue(), RelpCommand.SYSLOG, response.length(), createResponseBuffer(response)));
         Assertions.assertTrue(batch.verifyTransaction(id), "Didn't verify transaction");
     }
 
@@ -117,10 +114,8 @@ public class RelpBatchTest {
         for(int i=0; i<messages; i++) {
             Assertions.assertFalse(batch.verifyTransaction(ids[i]), "Verified transaction that was not completed");
             String response = "200 OK";
-            ByteBuffer buffer = ByteBuffer.allocateDirect(response.length());
-            buffer.put(response.getBytes(StandardCharsets.UTF_8));
-            buffer.flip();
-            batch.putResponse(ids[i], new RelpFrameRX(ids[i].intValue(), RelpCommand.SYSLOG, response.length(), buffer));
+            Assertions.assertFalse(batch.verifyTransaction(ids[i]), "Verified transaction that was not completed");
+            batch.putResponse(ids[i], new RelpFrameRX(ids[i].intValue(), RelpCommand.SYSLOG, response.length(), createResponseBuffer(response)));
             Assertions.assertTrue(batch.verifyTransaction(ids[i]), "Verified transaction that was completed");
         }
         Assertions.assertTrue(batch.verifyTransactionAll(), "Did not verify all transactions");
@@ -140,10 +135,7 @@ public class RelpBatchTest {
         int resolve = 3;
         for(int i=0; i<resolve; i++) {
             String response = "200 OK";
-            ByteBuffer buffer = ByteBuffer.allocateDirect(response.length());
-            buffer.put(response.getBytes(StandardCharsets.UTF_8));
-            buffer.flip();
-            batch.putResponse(ids[i], new RelpFrameRX(ids[i].intValue(), RelpCommand.SYSLOG, response.length(), buffer));
+            batch.putResponse(ids[i], new RelpFrameRX(ids[i].intValue(), RelpCommand.SYSLOG, response.length(), createResponseBuffer(response)));
         }
         // Clean work queue to pretend we have sent all
         int len = batch.getWorkQueueLength();
@@ -156,10 +148,7 @@ public class RelpBatchTest {
         // Resolve last messages
         for(int i=resolve; i<messages; i++) {
             String response = "200 OK";
-            ByteBuffer buffer = ByteBuffer.allocateDirect(response.length());
-            buffer.put(response.getBytes(StandardCharsets.UTF_8));
-            buffer.flip();
-            batch.putResponse(ids[i], new RelpFrameRX(ids[i].intValue(), RelpCommand.SYSLOG, response.length(), buffer));
+            batch.putResponse(ids[i], new RelpFrameRX(ids[i].intValue(), RelpCommand.SYSLOG, response.length(), createResponseBuffer(response)));
         }
         // Resolve work queue again
         len = batch.getWorkQueueLength();
@@ -186,9 +175,8 @@ public class RelpBatchTest {
     public void testPopWorkQueue() {
         RelpBatch batch = new RelpBatch();
         int messages = 5;
-        Long[] ids = new Long[messages];
         for(int i=0; i<messages;i++) {
-            ids[i] = batch.insert(message.getBytes(StandardCharsets.UTF_8));
+            batch.insert(message.getBytes(StandardCharsets.UTF_8));
         }
         Assertions.assertEquals(messages, batch.getWorkQueueLength(), "Queue length was not as expected");
         // Try depleting
@@ -196,5 +184,12 @@ public class RelpBatchTest {
             Assertions.assertEquals(i, batch.popWorkQueue(), "Work queue popout returned unexpected values");
         }
         Assertions.assertEquals(0, batch.getWorkQueueLength(), "Queue length was not as expected");
+    }
+
+    private ByteBuffer createResponseBuffer(String response) {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(response.length());
+        buffer.put(response.getBytes(StandardCharsets.UTF_8));
+        buffer.flip();
+        return buffer;
     }
 }

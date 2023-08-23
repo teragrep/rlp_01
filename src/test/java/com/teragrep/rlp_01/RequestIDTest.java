@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 public class RequestIDTest {
     @Test
     public void testCreateIdentifier() {
-        requestID id = new requestID();
+        RequestID id = new RequestID();
         Assertions.assertEquals(0, id.getNextID(), "Id did not increment correctly");
         Assertions.assertEquals(1, id.getNextID(), "Id did not increment correctly");
         Assertions.assertEquals(2, id.getNextID(), "Id did not increment correctly");
