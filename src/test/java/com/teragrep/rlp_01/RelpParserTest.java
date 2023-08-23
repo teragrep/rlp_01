@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 public class RelpParserTest {
     public RelpParser createParser(String message) {
@@ -136,6 +137,23 @@ public class RelpParserTest {
         RelpParser parser = createParser("0 rsp 3 six\n\n\n\n\n\n");
         Assertions.assertEquals("six", StandardCharsets.UTF_8.decode(parser.getData()).toString(), "parser getData() differs");
         Assertions.assertTrue(parser.isComplete(), "parser isComplete() differs");
+    }
+
+    @Test
+    public void testMultipleMessagesInRow() {
+        String message = "0 rsp 3 six\n1 rsp 4 four\n2 rsp 5 five!\n";
+        HashMap<Integer, String> results = new HashMap<>();
+        RelpParser parser = new RelpParser();
+        for(byte b : message.getBytes()) {
+            parser.parse(b);
+            if(parser.isComplete()) {
+                results.put(parser.getTxnId(), StandardCharsets.UTF_8.decode(parser.getData()).toString());
+                parser.reset();
+            }
+        }
+        Assertions.assertEquals("six", results.get(0), "parser getData() differs");
+        Assertions.assertEquals("four", results.get(1), "parser getData() differs");
+        Assertions.assertEquals("five!", results.get(2), "parser getData() differs");
     }
 
     @Disabled(value="Triggers BufferOverflow and is not gracefully handled")
