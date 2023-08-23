@@ -35,11 +35,11 @@ public class RelpParserTest {
     @Test
     public void testHappyPath() {
         RelpParser parser = createParser("2 rsp 6 200 OK\n");
-        Assertions.assertEquals(2, parser.getTxnId(), "Wrong transaction id received");
-        Assertions.assertEquals("rsp", parser.getCommandString(), "Wrong command received");
-        Assertions.assertEquals(6, parser.getLength(), "Wrong length received");
-        Assertions.assertEquals("200 OK", StandardCharsets.UTF_8.decode(parser.getData()).toString(), "Data does not match");
-        Assertions.assertTrue(parser.isComplete(), "Parser is not finished");
+        Assertions.assertEquals(2, parser.getTxnId(), "parser getTxnId() differs");
+        Assertions.assertEquals("rsp", parser.getCommandString(), "parser getCommandString() differs");
+        Assertions.assertEquals(6, parser.getLength(), "parser getLength() differs");
+        Assertions.assertEquals("200 OK", StandardCharsets.UTF_8.decode(parser.getData()).toString(), "parser.getData() differs");
+        Assertions.assertTrue(parser.isComplete(), "parser isComplete() differs");
     }
 
     @Test
@@ -55,7 +55,7 @@ public class RelpParserTest {
     @Test
     public void testEndsWithoutNL() {
         RelpParser parser = createParser("2 rsp 6 200 OK");
-        Assertions.assertFalse(parser.isComplete(), "Parser is complete");
+        Assertions.assertFalse(parser.isComplete(), "parser isComplete() differs");
     }
 
     @Test
@@ -66,54 +66,54 @@ public class RelpParserTest {
     @Test
     public void testCommandOpen() {
         RelpParser parser = createParser("0 open 0\n");
-        Assertions.assertTrue(parser.isComplete(), "Parser is not complete");
-        Assertions.assertEquals("open", parser.getCommandString(), "Parser got wrong command");
+        Assertions.assertTrue(parser.isComplete(), "parser isComplete() differs");
+        Assertions.assertEquals("open", parser.getCommandString(), "parser getCommandString() differs");
     }
 
     @Test
     public void testCommandClose() {
         RelpParser parser = createParser("0 close 0\n");
-        Assertions.assertTrue(parser.isComplete(), "Parser is not complete");
-        Assertions.assertEquals("close", parser.getCommandString(), "Parser got wrong command");
+        Assertions.assertTrue(parser.isComplete(), "parser isComplete() differs");
+        Assertions.assertEquals("close", parser.getCommandString(), "parser getCommandString() differs");
     }
 
     @Test
     public void testCommandAbort() {
         RelpParser parser = createParser("0 abort 0\n");
-        Assertions.assertTrue(parser.isComplete(), "Parser is not complete");
-        Assertions.assertEquals("abort", parser.getCommandString(), "Parser got wrong command");
+        Assertions.assertTrue(parser.isComplete(), "parser isComplete() differs");
+        Assertions.assertEquals("abort", parser.getCommandString(), "parser getCommandString() differs");
     }
 
     @Test
     public void testCommandServerClose() {
         RelpParser parser = createParser("0 serverclose 0\n");
-        Assertions.assertTrue(parser.isComplete(), "Parser is not complete");
-        Assertions.assertEquals("serverclose", parser.getCommandString(), "Parser got wrong command");
+        Assertions.assertTrue(parser.isComplete(), "parser isComplete() differs");
+        Assertions.assertEquals("serverclose", parser.getCommandString(), "parser getCommandString() differs");
     }
 
     @Test
     public void testCommandSyslog() {
         RelpParser parser = createParser("0 syslog 0\n");
-        Assertions.assertTrue(parser.isComplete(), "Parser is not complete");
-        Assertions.assertEquals("syslog", parser.getCommandString(), "Parser got wrong command");
+        Assertions.assertTrue(parser.isComplete(), "parser isComplete() differs");
+        Assertions.assertEquals("syslog", parser.getCommandString(), "parser getCommandString() differs");
     }
 
     @Test
     public void testCommandResponse() {
         RelpParser parser = createParser("0 rsp 0\n");
-        Assertions.assertTrue(parser.isComplete(), "Parser is not complete");
-        Assertions.assertEquals("rsp", parser.getCommandString(), "Parser got wrong command");
+        Assertions.assertTrue(parser.isComplete(), "parser isComplete() differs");
+        Assertions.assertEquals("rsp", parser.getCommandString(), "parser getCommandString() differs");
     }
 
     @Test
     public void testReset() {
         RelpParser parser = createParser("0 rsp 6 200 OK\n");
         parser.reset();
-        Assertions.assertFalse(parser.isComplete(), "Parser should be in incomplete state");
-        Assertions.assertEquals(-1, parser.getTxnId(), "TxnId was incorrectly reset");
-        Assertions.assertEquals("", parser.getCommandString(), "Command was incorrectly reset");
-        Assertions.assertEquals(-1, parser.getLength(), "Length was incorrectly reset");
-        Assertions.assertNull( parser.getData(), "Data was incorrectly reset");
+        Assertions.assertFalse(parser.isComplete(), "parser isComplete() differs");
+        Assertions.assertEquals(-1, parser.getTxnId(), "parser getTxnId() differs");
+        Assertions.assertEquals("", parser.getCommandString(), "parser getCommandString() differs");
+        Assertions.assertEquals(-1, parser.getLength(), "parser getLength() differs");
+        Assertions.assertNull(parser.getData(), "parser getData() differs");
     }
 
     @Test
@@ -134,8 +134,8 @@ public class RelpParserTest {
     @Test
     public void testMultipleLastNewlines() {
         RelpParser parser = createParser("0 rsp 3 six\n\n\n\n\n\n");
-        Assertions.assertEquals("six", StandardCharsets.UTF_8.decode(parser.getData()).toString(), "Parser got too much to data");
-        Assertions.assertTrue(parser.isComplete(), "Parser should have completed");
+        Assertions.assertEquals("six", StandardCharsets.UTF_8.decode(parser.getData()).toString(), "parser getData() differs");
+        Assertions.assertTrue(parser.isComplete(), "parser isComplete() differs");
     }
 
     @Test
