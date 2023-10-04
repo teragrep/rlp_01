@@ -293,7 +293,10 @@ public class RelpConnection implements RelpSender {
         relpRequest.write(byteBuffer);
 
         byteBuffer.flip();
-        relpClientSocket.write(byteBuffer);
-        byteBuffer.clear();
+        try {
+            relpClientSocket.write(byteBuffer);
+        } finally {
+            byteBuffer.clear();
+        }
     }
 }
