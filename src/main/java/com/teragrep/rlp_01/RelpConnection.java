@@ -173,6 +173,7 @@ public class RelpConnection implements RelpSender {
         }
         this.state = RelpConnectionState.CLOSED;
         this.preAllocatedTXBuffer.clear();
+        this.preAllocatedRXBuffer.clear();
     }
 
     /**
