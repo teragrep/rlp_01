@@ -172,6 +172,8 @@ public class RelpConnection implements RelpSender {
             ; // don't care
         }
         this.state = RelpConnectionState.CLOSED;
+        this.preAllocatedTXBuffer.clear();
+        this.preAllocatedRXBuffer.clear();
     }
 
     /**
@@ -293,7 +295,10 @@ public class RelpConnection implements RelpSender {
         relpRequest.write(byteBuffer);
 
         byteBuffer.flip();
-        relpClientSocket.write(byteBuffer);
-        byteBuffer.clear();
+        try {
+            relpClientSocket.write(byteBuffer);
+        } finally {
+            byteBuffer.clear();
+        }
     }
 }
