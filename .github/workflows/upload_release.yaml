@@ -2,7 +2,7 @@ name: Upload Release
 
 on:
   release:
-    types: published
+    types: [published]
 
 jobs:
   upload:
@@ -18,34 +18,43 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
+      - name: Setup Signing
+        uses: actions/setup-java@v2
+        with:
+          java-version: 8.0.292+10
+          distribution: 'adopt'
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Setup GitHub Packages
+        uses: actions/setup-java@v2
+        with:
+          java-version: 8.0.292+10
+          distribution: 'adopt'
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Publish to GitHub Packages
+        run: mvn --batch-mode -Drevision=${{ github.event.release.tag_name }} -Dsha1= -Dchangelist= clean deploy -Ppublish-github-packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+
       - name: Setup Maven Central
         uses: actions/setup-java@v2
         with:
           java-version: 8.0.292+10
           distribution: 'adopt'
 
-          server-id: ossrh
-          server-username: MAVEN_CENTRAL_USERNAME
-          server-password: MAVEN_CENTRAL_TOKEN
-
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          server-id: central-sonatype-org
+          server-username: CENTRAL_SONATYPE_ORG_USERNAME
+          server-password: CENTRAL_SONATYPE_ORG_PASSWORD
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
       - name: Publish to Maven Central
         run: mvn --batch-mode -Drevision=${{ github.event.release.tag_name }} -Dsha1= -Dchangelist= clean deploy -Ppublish-maven-central
         env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
-          
+          CENTRAL_SONATYPE_ORG_USERNAME: ${{ secrets.CENTRAL_SONATYPE_ORG_USERNAME }}
+          CENTRAL_SONATYPE_ORG_PASSWORD: ${{ secrets.CENTRAL_SONATYPE_ORG_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-          
-      - name: Setup GitHub Packages
-        uses: actions/setup-java@v2
-        with:
-          java-version: 8.0.292+10
-          distribution: 'adopt'
-          
-      - name: Publish to GitHub Packages
-        run: mvn --batch-mode -Drevision=${{ github.event.release.tag_name }} -Dsha1= -Dchangelist= clean deploy -Ppublish-github-packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
