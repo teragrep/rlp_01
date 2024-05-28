@@ -184,9 +184,11 @@ public class RelpClientTlsSocket extends RelpClientSocket {
     int read(ByteBuffer byteBuffer) throws IOException, TimeoutException {
         int readBytes;
         try {
+            // try reading data if it is available from the tlsChannel
             readBytes = tlsChannel.read(byteBuffer);
         }
         catch (NeedsReadException | NeedsWriteException e) {
+            // there is no more data, zero read will need selector to work on it
             readBytes = 0;
         }
 
