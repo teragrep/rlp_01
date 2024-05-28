@@ -193,14 +193,14 @@ public class RelpClientTlsSocket extends RelpClientSocket {
         }
 
         if (readBytes == -1) {
-            throw new IOException("read failed");
+            throw new IOException("Read failed, end-of-stream reached");
         }
 
         if (readBytes == 0) {
             SelectionKey key = this.socketChannel.register(this.selector, SelectionKey.OP_READ);
             int nReady = selector.select(this.readTimeout);
             if (nReady == 0) {
-                throw new TimeoutException("read timed out");
+                throw new TimeoutException("Read timed out");
             }
             Set<SelectionKey> polledEvents = this.selector.selectedKeys();
             Iterator<SelectionKey> eventIter = polledEvents.iterator();
@@ -211,7 +211,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                     try {
                         readBytes = tlsChannel.read(byteBuffer);
                         if (readBytes == -1) {
-                            throw new IOException("read failed");
+                            throw new IOException("Read failed, end-of-stream reached");
                         }
                     } catch (NeedsReadException e) {
                         key.interestOps(SelectionKey.OP_READ); // overwrites previous value
