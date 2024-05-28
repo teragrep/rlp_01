@@ -182,31 +182,45 @@ public class RelpClientTlsSocket extends RelpClientSocket {
 
     @Override
     int read(ByteBuffer byteBuffer) throws IOException, TimeoutException {
-        int readBytes = -1;
-
-        SelectionKey key = this.socketChannel.register(this.selector, SelectionKey.OP_READ);
-        int nReady = selector.select(this.readTimeout);
-        if (nReady == 0) {
-            throw new TimeoutException("read timed out");
+        int readBytes;
+        try {
+            // try reading data if it is available from the tlsChannel
+            readBytes = tlsChannel.read(byteBuffer);
         }
-        Set<SelectionKey> polledEvents = this.selector.selectedKeys();
-        Iterator<SelectionKey> eventIter = polledEvents.iterator();
-        while (eventIter.hasNext()) {
-            SelectionKey currentKey = eventIter.next();
-            // tlsChannel needs to know about both
-            if (currentKey.isReadable() || currentKey.isWritable()) {
-                try {
-                    readBytes = tlsChannel.read(byteBuffer);
-                    if (readBytes == -1) {
-                        throw new IOException("read failed");
-                    }
-                } catch (NeedsReadException e) {
-                    key.interestOps(SelectionKey.OP_READ); // overwrites previous value
-                } catch (NeedsWriteException e) {
-                    key.interestOps(SelectionKey.OP_WRITE); // overwrites previous value
-                }
+        catch (NeedsReadException | NeedsWriteException e) {
+            // there is no more data, zero read will need selector to work on it
+            readBytes = 0;
+        }
+
+        if (readBytes == -1) {
+            throw new IOException("Read failed, end-of-stream reached");
+        }
+
+        if (readBytes == 0) {
+            SelectionKey key = this.socketChannel.register(this.selector, SelectionKey.OP_READ);
+            int nReady = selector.select(this.readTimeout);
+            if (nReady == 0) {
+                throw new TimeoutException("Read timed out");
             }
-            eventIter.remove();
+            Set<SelectionKey> polledEvents = this.selector.selectedKeys();
+            Iterator<SelectionKey> eventIter = polledEvents.iterator();
+            while (eventIter.hasNext()) {
+                SelectionKey currentKey = eventIter.next();
+                // tlsChannel needs to know about both
+                if (currentKey.isReadable() || currentKey.isWritable()) {
+                    try {
+                        readBytes = tlsChannel.read(byteBuffer);
+                        if (readBytes == -1) {
+                            throw new IOException("Read failed, end-of-stream reached");
+                        }
+                    } catch (NeedsReadException e) {
+                        key.interestOps(SelectionKey.OP_READ); // overwrites previous value
+                    } catch (NeedsWriteException e) {
+                        key.interestOps(SelectionKey.OP_WRITE); // overwrites previous value
+                    }
+                }
+                eventIter.remove();
+            }
         }
         return readBytes;
     }
