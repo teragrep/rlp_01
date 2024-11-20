@@ -19,6 +19,11 @@ package com.teragrep.rlp_01.pool;
 public class ManagedRelpConnectionStub implements IManagedRelpConnection {
 
     @Override
+    public void reconnect() {
+        throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
+    }
+
+    @Override
     public void ensureSent(byte[] bytes) {
         throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
     }

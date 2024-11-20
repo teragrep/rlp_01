@@ -38,6 +38,10 @@ public class RelpConnectionFactory implements Supplier<IManagedRelpConnection> {
             managedRelpConnection = new RebindableRelpConnection(managedRelpConnection, relpConfig.rebindRequestAmount);
         }
 
+        if (relpConfig.maxIdleEnabled) {
+            managedRelpConnection = new RenewableRelpConnection(managedRelpConnection, relpConfig.maxIdle);
+        }
+
         return managedRelpConnection;
     }
 }

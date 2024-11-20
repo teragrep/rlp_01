@@ -17,6 +17,6 @@
 package com.teragrep.rlp_01.pool;
 
 public interface IManagedRelpConnection extends Poolable {
-
+    void reconnect();
     void ensureSent(byte[] bytes);
 }
