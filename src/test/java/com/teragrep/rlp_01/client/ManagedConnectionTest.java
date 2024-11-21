@@ -8,11 +8,8 @@ import com.teragrep.rlp_01.pool.Pool;
 import com.teragrep.rlp_01.pool.UnboundPool;
 import com.teragrep.rlp_03.frame.FrameDelegationClockFactory;
 import com.teragrep.rlp_03.frame.delegate.EventDelegate;
-import com.teragrep.rlp_03.frame.delegate.FrameContext;
 import com.teragrep.rlp_03.frame.delegate.FrameDelegate;
 import com.teragrep.rlp_03.frame.delegate.event.RelpEvent;
-import com.teragrep.rlp_03.frame.delegate.event.RelpEventClose;
-import com.teragrep.rlp_03.frame.delegate.event.RelpEventOpen;
 import com.teragrep.rlp_03.frame.delegate.event.RelpEventSyslog;
 import org.junit.jupiter.api.*;
 
@@ -78,38 +75,6 @@ public class ManagedConnectionTest {
         eventLoop.stop();
         executorService.shutdown();
         Assertions.assertDoesNotThrow(() -> eventLoopThread.join());
-    }
-
-
-    private static class RelpEventCloseCounting extends RelpEvent {
-        private final AtomicLong closeCount;
-        private final RelpEventClose relpEventClose;
-
-        RelpEventCloseCounting(AtomicLong closeCount) {
-            this.closeCount = closeCount;
-            this.relpEventClose = new RelpEventClose();
-        }
-        @Override
-        public void accept(FrameContext frameContext) {
-            relpEventClose.accept(frameContext);
-            closeCount.incrementAndGet();
-        }
-    }
-
-    private static class RelpEventOpenCounting extends RelpEvent {
-        private final AtomicLong openCount;
-        private final RelpEventOpen eventOpen;
-
-        RelpEventOpenCounting(AtomicLong openCount) {
-            this.openCount = openCount;
-            this.eventOpen = new RelpEventOpen();
-        }
-
-        @Override
-        public void accept(FrameContext frameContext) {
-            eventOpen.accept(frameContext);
-            openCount.incrementAndGet();
-        }
     }
 
 
