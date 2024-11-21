@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
@@ -16,7 +18,7 @@ public class PoolTest {
 
         Pool<TestPoolable> pool = new Pool<>(() -> new TestPoolableImpl(report), new TestPoolableStub());
 
-        final int testCycles = 1000;
+        final int testCycles = 1_000_000;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
 
         for (int i = 0; i < testCycles; i++) {
@@ -42,17 +44,21 @@ public class PoolTest {
     private static class TestPoolableImpl implements TestPoolable {
 
         private final AtomicLong report;
-        public long counter;
+        private final List<Integer> counterList;
 
         TestPoolableImpl(AtomicLong report) {
             this.report = report;
-            this.counter = 0;
+            this.counterList = new ArrayList<>(1);
+            int counter = 0;
+            this.counterList.add(counter);
         }
 
         @Override
         public void increment() {
-            // non-atomic operation here
+            // unsynchronized list access here to test concurrent modification
+            int counter = counterList.remove(0);
             counter = counter + 1;
+            counterList.add(counter);
         }
 
         @Override
@@ -62,6 +68,7 @@ public class PoolTest {
 
         @Override
         public void close() throws IOException {
+            int counter = counterList.get(0);
             report.addAndGet(counter);
         }
     }
