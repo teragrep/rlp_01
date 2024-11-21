@@ -18,7 +18,10 @@ package com.teragrep.rlp_01.client;
 
 import com.teragrep.rlp_01.pool.Poolable;
 
+import java.io.IOException;
+
 public interface IManagedRelpConnection extends Poolable {
-    void reconnect();
+    void connect() throws IOException;
+    void forceReconnect();
     void ensureSent(byte[] bytes);
 }

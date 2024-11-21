@@ -17,14 +17,20 @@ public class RenewableRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void reconnect() {
-        managedRelpConnection.reconnect();
+    public void connect() throws IOException {
+        lastAccess = Instant.now();
+        managedRelpConnection.connect();
+    }
+
+    @Override
+    public void forceReconnect() {
+        managedRelpConnection.forceReconnect();
     }
 
     @Override
     public void ensureSent(byte[] bytes) {
         if (lastAccess.plus(maxIdle).isAfter(Instant.now())) {
-            reconnect();
+            forceReconnect();
         }
         lastAccess = Instant.now();
         managedRelpConnection.ensureSent(bytes);

@@ -30,14 +30,19 @@ public class RebindableRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void reconnect() {
-        managedRelpConnection.reconnect();
+    public void connect() throws IOException {
+        managedRelpConnection.connect();
+    }
+
+    @Override
+    public void forceReconnect() {
+        managedRelpConnection.forceReconnect();
     }
 
     @Override
     public void ensureSent(byte[] bytes) {
         if (recordsSent >= rebindRequestAmount) {
-            managedRelpConnection.reconnect();
+            managedRelpConnection.forceReconnect();
             recordsSent = 0;
         }
         managedRelpConnection.ensureSent(bytes);

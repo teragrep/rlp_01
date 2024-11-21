@@ -18,19 +18,31 @@ package com.teragrep.rlp_01.client;
 
 import com.teragrep.rlp_01.RelpConnection;
 
+import javax.net.ssl.SSLEngine;
 import java.util.function.Supplier;
 
 public class RelpConnectionFactory implements Supplier<IManagedRelpConnection> {
 
     private final RelpConfig relpConfig;
+    private final SSLContextSupplier sslContextSupplier;
 
     public RelpConnectionFactory(RelpConfig relpConfig) {
+        this(relpConfig, new SSLContextSupplierStub());
+    }
+    public RelpConnectionFactory(RelpConfig relpConfig, SSLContextSupplier sslContextSupplier) {
         this.relpConfig = relpConfig;
+        this.sslContextSupplier = sslContextSupplier;
     }
 
     @Override
     public IManagedRelpConnection get() {
-        IRelpConnection relpConnection =  new RelpConnectionWithConfig(new RelpConnection(), relpConfig);
+        IRelpConnection relpConnection;
+        if (sslContextSupplier.isStub()) {
+            relpConnection = new RelpConnectionWithConfig(new RelpConnection(), relpConfig);
+        }
+        else {
+            relpConnection = new RelpConnectionWithConfig(new RelpConnection(() -> sslContextSupplier.get().createSSLEngine()), relpConfig);
+        }
 
         IManagedRelpConnection managedRelpConnection = new ManagedRelpConnection(relpConnection);
 

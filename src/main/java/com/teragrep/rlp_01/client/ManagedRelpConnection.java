@@ -33,12 +33,13 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void reconnect() {
-        close();
+    public void forceReconnect() {
+        tearDown();
         connect();
     }
 
-    private void connect() {
+    @Override
+    public void connect() {
         boolean connected = false;
         while (!connected) {
             try {

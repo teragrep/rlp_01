@@ -16,10 +16,17 @@
  */
 package com.teragrep.rlp_01.client;
 
+import java.io.IOException;
+
 public class ManagedRelpConnectionStub implements IManagedRelpConnection {
 
     @Override
-    public void reconnect() {
+    public void connect() throws IOException {
+        throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
+    }
+
+    @Override
+    public void forceReconnect() {
         throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
     }
 

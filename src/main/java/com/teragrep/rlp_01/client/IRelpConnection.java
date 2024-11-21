@@ -21,6 +21,7 @@ import com.teragrep.rlp_01.RelpBatch;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
+// TODO refactor RelpConnection into an interface and RelpConnectionImpl and remove this
 public interface IRelpConnection {
 
     int getReadTimeout();
