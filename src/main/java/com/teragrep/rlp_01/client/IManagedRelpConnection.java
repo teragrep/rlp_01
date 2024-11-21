@@ -14,27 +14,11 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package com.teragrep.rlp_01.pool;
+package com.teragrep.rlp_01.client;
 
-public class ManagedRelpConnectionStub implements IManagedRelpConnection {
+import com.teragrep.rlp_01.pool.Poolable;
 
-    @Override
-    public void reconnect() {
-        throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
-    }
-
-    @Override
-    public void ensureSent(byte[] bytes) {
-        throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
-    }
-
-    @Override
-    public boolean isStub() {
-        return true;
-    }
-
-    @Override
-    public void close() {
-        throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
-    }
+public interface IManagedRelpConnection extends Poolable {
+    void reconnect();
+    void ensureSent(byte[] bytes);
 }

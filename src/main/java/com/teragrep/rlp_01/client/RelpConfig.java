@@ -1,4 +1,4 @@
-package com.teragrep.rlp_01.pool;
+package com.teragrep.rlp_01.client;
 
 import java.time.Period;
 
