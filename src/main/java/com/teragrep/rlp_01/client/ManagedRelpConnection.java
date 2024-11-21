@@ -73,6 +73,11 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
 
     @Override
     public void ensureSent(byte[] bytes) {
+        // avoid unnecessary exception for fresh connections
+        if (!hasConnected) {
+            connect();
+        }
+
         final RelpBatch relpBatch = new RelpBatch();
         relpBatch.insert(bytes);
         boolean notSent = true;
