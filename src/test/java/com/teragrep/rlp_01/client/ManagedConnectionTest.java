@@ -8,12 +8,23 @@ import com.teragrep.rlp_01.pool.Pool;
 import com.teragrep.rlp_01.pool.UnboundPool;
 import com.teragrep.rlp_03.frame.FrameDelegationClockFactory;
 import com.teragrep.rlp_03.frame.delegate.DefaultFrameDelegate;
+import com.teragrep.rlp_03.frame.delegate.EventDelegate;
+import com.teragrep.rlp_03.frame.delegate.FrameContext;
+import com.teragrep.rlp_03.frame.delegate.FrameDelegate;
+import com.teragrep.rlp_03.frame.delegate.event.RelpEvent;
+import com.teragrep.rlp_03.frame.delegate.event.RelpEventClose;
+import com.teragrep.rlp_03.frame.delegate.event.RelpEventOpen;
+import com.teragrep.rlp_03.frame.delegate.event.RelpEventSyslog;
 import org.junit.jupiter.api.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -27,6 +38,10 @@ public class ManagedConnectionTest {
     private ExecutorService executorService;
 
     private final ConcurrentLinkedDeque<byte[]> messageList = new ConcurrentLinkedDeque<>();
+
+    private final AtomicLong connectionOpenCount = new AtomicLong();
+    private final AtomicLong connectionCleanCloseCount = new AtomicLong();
+
     @BeforeAll
     public void init() {
         EventLoopFactory eventLoopFactory = new EventLoopFactory();
@@ -36,11 +51,25 @@ public class ManagedConnectionTest {
         eventLoopThread.start();
 
         executorService = Executors.newSingleThreadExecutor();
+
+        Supplier<FrameDelegate> frameDelegateSupplier = () -> {
+
+            Map<String, RelpEvent> relpCommandConsumerMap = new HashMap<>();
+
+            relpCommandConsumerMap.put("close", new RelpEventCloseCounting(connectionCleanCloseCount));
+
+            relpCommandConsumerMap.put("open", new RelpEventOpenCounting(connectionOpenCount));
+
+            relpCommandConsumerMap.put("syslog", new RelpEventSyslog((frame) -> messageList.add(frame.relpFrame().payload().toBytes())));
+
+            return new EventDelegate(relpCommandConsumerMap);
+        };
+
         ServerFactory serverFactory = new ServerFactory(
                 eventLoop,
                 executorService,
                 new PlainFactory(),
-                new FrameDelegationClockFactory(() -> new DefaultFrameDelegate((frame) -> messageList.add(frame.relpFrame().payload().toBytes())))
+                new FrameDelegationClockFactory(frameDelegateSupplier)
         );
         Assertions.assertAll(() -> serverFactory.create(port));
     }
@@ -50,6 +79,38 @@ public class ManagedConnectionTest {
         eventLoop.stop();
         executorService.shutdown();
         Assertions.assertAll(eventLoopThread::join);
+    }
+
+
+    private static class RelpEventCloseCounting extends RelpEvent {
+        private final AtomicLong closeCount;
+        private final RelpEventClose relpEventClose;
+
+        RelpEventCloseCounting(AtomicLong closeCount) {
+            this.closeCount = closeCount;
+            this.relpEventClose = new RelpEventClose();
+        }
+        @Override
+        public void accept(FrameContext frameContext) {
+            relpEventClose.accept(frameContext);
+            closeCount.incrementAndGet();
+        }
+    }
+
+    private static class RelpEventOpenCounting extends RelpEvent {
+        private final AtomicLong openCount;
+        private final RelpEventOpen eventOpen;
+
+        RelpEventOpenCounting(AtomicLong openCount) {
+            this.openCount = openCount;
+            this.eventOpen = new RelpEventOpen();
+        }
+
+        @Override
+        public void accept(FrameContext frameContext) {
+            eventOpen.accept(frameContext);
+            openCount.incrementAndGet();
+        }
     }
 
 
@@ -121,6 +182,11 @@ public class ManagedConnectionTest {
             byte[] payload = messageList.removeFirst();
             Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());
         }
+
+        Assertions.assertTrue(connectionOpenCount.get() > 1);
+        Assertions.assertEquals(connectionOpenCount.get(), connectionCleanCloseCount.get());
+        connectionOpenCount.set(0);
+        connectionCleanCloseCount.set(0);
     }
 
     @Test
@@ -172,6 +238,12 @@ public class ManagedConnectionTest {
             byte[] payload = messageList.removeFirst();
             Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());
         }
+
+        Assertions.assertTrue(connectionOpenCount.get() > 1);
+        // renewable uses forceReconnect
+        Assertions.assertTrue(connectionCleanCloseCount.get() < connectionOpenCount.get());
+        connectionOpenCount.set(0);
+        connectionCleanCloseCount.set(0);
     }
 
     @Test
@@ -223,5 +295,10 @@ public class ManagedConnectionTest {
             byte[] payload = messageList.removeFirst();
             Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());
         }
+
+        Assertions.assertTrue(connectionOpenCount.get() > 1);
+        Assertions.assertEquals(connectionOpenCount.get(), connectionCleanCloseCount.get());
+        connectionOpenCount.set(0);
+        connectionCleanCloseCount.set(0);
     }
 }

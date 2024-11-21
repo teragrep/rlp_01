@@ -21,6 +21,11 @@ import java.io.IOException;
 public class ManagedRelpConnectionStub implements IManagedRelpConnection {
 
     @Override
+    public void reconnect() {
+        throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
+    }
+
+    @Override
     public void connect() throws IOException {
         throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
     }

@@ -17,6 +17,12 @@ public class RenewableRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
+    public void reconnect() {
+        lastAccess = Instant.now();
+        managedRelpConnection.reconnect();
+    }
+
+    @Override
     public void connect() throws IOException {
         lastAccess = Instant.now();
         managedRelpConnection.connect();
@@ -24,6 +30,7 @@ public class RenewableRelpConnection implements IManagedRelpConnection {
 
     @Override
     public void forceReconnect() {
+        lastAccess = Instant.now();
         managedRelpConnection.forceReconnect();
     }
 
