@@ -18,7 +18,6 @@ package com.teragrep.rlp_01.client;
 
 import com.teragrep.rlp_01.RelpConnection;
 
-import javax.net.ssl.SSLEngine;
 import java.util.function.Supplier;
 
 public class RelpConnectionFactory implements Supplier<IManagedRelpConnection> {
