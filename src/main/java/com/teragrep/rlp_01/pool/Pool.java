@@ -16,82 +16,12 @@
  */
 package com.teragrep.rlp_01.pool;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
-public class Pool<T extends Poolable> implements AutoCloseable, Supplier<T> {
+public interface Pool<T extends Poolable> extends AutoCloseable, Supplier<T> {
+    T get();
 
-    private final Supplier<T> supplier;
+    void offer(T object);
 
-    private final ConcurrentLinkedQueue<T> queue;
-
-    private final T stub;
-
-    private final Lock lock = new ReentrantLock();
-
-    private final AtomicBoolean close;
-
-    public Pool(final Supplier<T> supplier, T stub) {
-        this.supplier = supplier;
-        this.queue = new ConcurrentLinkedQueue<>();
-        this.stub = stub;
-        this.close = new AtomicBoolean();
-    }
-
-    public T get() {
-        T object;
-        if (close.get()) {
-            object = stub;
-        }
-        else {
-            // get or create
-            object = queue.poll();
-            if (object == null) {
-                object = supplier.get();
-            }
-        }
-
-        return object;
-    }
-
-    public void offer(T object) {
-        if (!object.isStub()) {
-            queue.add(object);
-        }
-
-        if (close.get()) {
-            while (queue.peek() != null) {
-                if (lock.tryLock()) {
-                    while (true) {
-                        T pooled = queue.poll();
-                        if (pooled == null) {
-                            break;
-                        }
-                        else {
-                            try {
-                                pooled.close();
-                            }
-                            catch (Exception exception) {
-                                System.err.println("Exception <" + exception.getMessage() + "> while closing poolable <"+ pooled +">");
-                            }
-                        }
-                    }
-                    lock.unlock();
-                }
-                else {
-                    break;
-                }
-            }
-        }
-    }
-
-    public void close() {
-        close.set(true);
-
-        // close all that are in the pool right now
-        offer(stub);
-    }
+    void close();
 }

@@ -1,3 +1,19 @@
+/*
+   Java Reliable Event Logging Protocol Library RLP-01
+   Copyright (C) 2021-2024  Suomen Kanuuna Oy
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
 package com.teragrep.rlp_01.pool;
 
 import org.junit.jupiter.api.Assertions;
@@ -13,10 +29,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class PoolTest {
 
     @Test
-    public void testPool() {
+    public void testUnboundPool() {
         AtomicLong report = new AtomicLong();
 
-        Pool<TestPoolable> pool = new Pool<>(() -> new TestPoolableImpl(report), new TestPoolableStub());
+        Pool<TestPoolable> pool = new UnboundPool<>(() -> new TestPoolableImpl(report), new TestPoolableStub());
 
         final int testCycles = 1_000_000;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
