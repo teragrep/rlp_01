@@ -155,7 +155,6 @@ public class SendMessageTest {
         Assertions.assertDoesNotThrow(() -> relpSession.connect(hostname, port));
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("test> Connected");
-            Assertions.assertDoesNotThrow(() -> Thread.sleep(1000));
         }
         String msg1 = "clientTestOpenSendClose 1";
         byte[] data1 = msg1.getBytes(StandardCharsets.UTF_8);
@@ -164,7 +163,6 @@ public class SendMessageTest {
         Assertions.assertDoesNotThrow(() -> relpSession.commit(batch1));
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("test> Committed");
-            Assertions.assertDoesNotThrow(() -> Thread.sleep(1000));
         }
         Assertions.assertTrue(batch1.verifyTransactionAll());
 
@@ -175,13 +173,11 @@ public class SendMessageTest {
         Assertions.assertDoesNotThrow(() -> relpSession.commit(batch2));
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("test> Committed second");
-            Assertions.assertDoesNotThrow(() -> Thread.sleep(1000));
         }
         Assertions.assertTrue(batch1.verifyTransactionAll());
         Assertions.assertDoesNotThrow(relpSession::disconnect);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("test> Disconnected");
-            Assertions.assertDoesNotThrow(() -> Thread.sleep(1000));
         }
 
         // messages must equal to what was send
