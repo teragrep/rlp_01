@@ -8,10 +8,7 @@ import com.teragrep.rlp_01.pool.Pool;
 import com.teragrep.rlp_01.pool.UnboundPool;
 import com.teragrep.rlp_03.frame.FrameDelegationClockFactory;
 import com.teragrep.rlp_03.frame.delegate.DefaultFrameDelegate;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Period;
@@ -46,6 +43,14 @@ public class ManagedConnectionTest {
         );
         Assertions.assertAll(() -> serverFactory.create(port));
     }
+
+    @AfterAll
+    public void cleanup() {
+        eventLoop.stop();
+        executorService.shutdown();
+        Assertions.assertAll(eventLoopThread::join);
+    }
+
 
     @Test
     public void testFactoryProvisionedConnection() {
