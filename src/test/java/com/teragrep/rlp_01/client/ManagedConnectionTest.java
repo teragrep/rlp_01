@@ -7,7 +7,6 @@ import com.teragrep.net_01.server.ServerFactory;
 import com.teragrep.rlp_01.pool.Pool;
 import com.teragrep.rlp_01.pool.UnboundPool;
 import com.teragrep.rlp_03.frame.FrameDelegationClockFactory;
-import com.teragrep.rlp_03.frame.delegate.DefaultFrameDelegate;
 import com.teragrep.rlp_03.frame.delegate.EventDelegate;
 import com.teragrep.rlp_03.frame.delegate.FrameContext;
 import com.teragrep.rlp_03.frame.delegate.FrameDelegate;
@@ -45,7 +44,7 @@ public class ManagedConnectionTest {
     @BeforeAll
     public void init() {
         EventLoopFactory eventLoopFactory = new EventLoopFactory();
-        Assertions.assertAll(() -> eventLoop = eventLoopFactory.create());
+        Assertions.assertDoesNotThrow(() -> eventLoop = eventLoopFactory.create());
 
         eventLoopThread = new Thread(eventLoop);
         eventLoopThread.start();
@@ -71,14 +70,14 @@ public class ManagedConnectionTest {
                 new PlainFactory(),
                 new FrameDelegationClockFactory(frameDelegateSupplier)
         );
-        Assertions.assertAll(() -> serverFactory.create(port));
+        Assertions.assertDoesNotThrow(() -> serverFactory.create(port));
     }
 
     @AfterAll
     public void cleanup() {
         eventLoop.stop();
         executorService.shutdown();
-        Assertions.assertAll(eventLoopThread::join);
+        Assertions.assertDoesNotThrow(() -> eventLoopThread.join());
     }
 
 
@@ -130,13 +129,13 @@ public class ManagedConnectionTest {
 
         IManagedRelpConnection relpConnection = relpConnectionFactory.get();
 
-        Assertions.assertAll(relpConnection::connect);
+        Assertions.assertDoesNotThrow(relpConnection::connect);
 
         String heyRelp = "hey this is relp";
 
         relpConnection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8));
 
-        Assertions.assertAll(relpConnection::close);
+        Assertions.assertDoesNotThrow(relpConnection::close);
 
         Assertions.assertEquals(heyRelp, new String(messageList.remove(), StandardCharsets.UTF_8));
     }
@@ -171,7 +170,7 @@ public class ManagedConnectionTest {
             });
         }
 
-        Assertions.assertAll(countDownLatch::await);
+        Assertions.assertDoesNotThrow(() -> countDownLatch.await());
 
         relpConnectionPool.close();
 
@@ -227,7 +226,7 @@ public class ManagedConnectionTest {
         }
 
 
-        Assertions.assertAll(countDownLatch::await);
+        Assertions.assertDoesNotThrow(() -> countDownLatch.await());
 
         relpConnectionPool.close();
 
@@ -284,7 +283,7 @@ public class ManagedConnectionTest {
         }
 
 
-        Assertions.assertAll(countDownLatch::await);
+        Assertions.assertDoesNotThrow(() -> countDownLatch.await());
 
         relpConnectionPool.close();
 
