@@ -12,6 +12,7 @@ import org.junit.jupiter.api.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
@@ -116,6 +117,108 @@ public class ManagedConnectionTest {
         Assertions.assertEquals(testCycles, messageList.size());
 
         Pattern heyPattern = Pattern.compile("hey this is relp \\d+");
+        while(!messageList.isEmpty()) {
+            byte[] payload = messageList.removeFirst();
+            Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());
+        }
+    }
+
+    @Test
+    public void testPooledRenewedConnections() {
+        RelpConfig relpConfig = new RelpConfig(
+                hostname,
+                port,
+                500,
+                0,
+                false,
+                Duration.of(5, ChronoUnit.MILLIS),
+                true
+        );
+
+        RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
+
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(relpConnectionFactory, new ManagedRelpConnectionStub());
+
+        int testCycles = 20;
+        CountDownLatch countDownLatch = new CountDownLatch(testCycles);
+
+        for (int i = 0; i < testCycles; i++) {
+            final String heyRelp = "hey this is renewed relp " + i;
+            ForkJoinPool.commonPool().submit(() -> {
+                IManagedRelpConnection connection = relpConnectionPool.get();
+
+                // will set timer to 5 millis
+                connection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8));
+                // exceed 5 millis
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                relpConnectionPool.offer(connection);
+                countDownLatch.countDown();
+            });
+        }
+
+
+        Assertions.assertAll(countDownLatch::await);
+
+        relpConnectionPool.close();
+
+        Assertions.assertEquals(testCycles, messageList.size());
+
+        Pattern heyPattern = Pattern.compile("hey this is renewed relp \\d+");
+        while(!messageList.isEmpty()) {
+            byte[] payload = messageList.removeFirst();
+            Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());
+        }
+    }
+
+    @Test
+    public void testPooledReboundConnections() {
+        RelpConfig relpConfig = new RelpConfig(
+                hostname,
+                port,
+                500,
+                1,
+                true,
+                Duration.ZERO,
+                false
+        );
+
+        RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
+
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(relpConnectionFactory, new ManagedRelpConnectionStub());
+
+        int testCycles = 20;
+        CountDownLatch countDownLatch = new CountDownLatch(testCycles);
+
+        for (int i = 0; i < testCycles; i++) {
+            final String heyRelp = "hey this is rebound relp " + i;
+            ForkJoinPool.commonPool().submit(() -> {
+                IManagedRelpConnection connection = relpConnectionPool.get();
+
+                // will set timer to 5 millis
+                connection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8));
+                // exceed 5 millis
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                relpConnectionPool.offer(connection);
+                countDownLatch.countDown();
+            });
+        }
+
+
+        Assertions.assertAll(countDownLatch::await);
+
+        relpConnectionPool.close();
+
+        Assertions.assertEquals(testCycles, messageList.size());
+
+        Pattern heyPattern = Pattern.compile("hey this is rebound relp \\d+");
         while(!messageList.isEmpty()) {
             byte[] payload = messageList.removeFirst();
             Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());

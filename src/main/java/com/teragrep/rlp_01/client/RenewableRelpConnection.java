@@ -29,7 +29,7 @@ public class RenewableRelpConnection implements IManagedRelpConnection {
 
     @Override
     public void ensureSent(byte[] bytes) {
-        if (lastAccess.plus(maxIdle).isAfter(Instant.now())) {
+        if (lastAccess.plus(maxIdle).isBefore(Instant.now())) {
             forceReconnect();
         }
         lastAccess = Instant.now();
