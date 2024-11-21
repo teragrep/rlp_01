@@ -2,15 +2,15 @@ package com.teragrep.rlp_01.client;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.Period;
+import java.time.Duration;
 
 public class RenewableRelpConnection implements IManagedRelpConnection {
 
     private final IManagedRelpConnection managedRelpConnection;
-    private final Period maxIdle;
+    private final Duration maxIdle;
     private Instant lastAccess;
 
-    public RenewableRelpConnection(IManagedRelpConnection managedRelpConnection, Period maxIdle) {
+    public RenewableRelpConnection(IManagedRelpConnection managedRelpConnection, Duration maxIdle) {
         this.managedRelpConnection = managedRelpConnection;
         this.maxIdle = maxIdle;
         this.lastAccess = Instant.ofEpochSecond(0);

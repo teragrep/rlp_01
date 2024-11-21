@@ -11,7 +11,7 @@ import com.teragrep.rlp_03.frame.delegate.DefaultFrameDelegate;
 import org.junit.jupiter.api.*;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Period;
+import java.time.Duration;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
@@ -60,7 +60,7 @@ public class ManagedConnectionTest {
                 500,
                 0,
                 false,
-                Period.ZERO,
+                Duration.ZERO,
                 false
         );
 
@@ -87,7 +87,7 @@ public class ManagedConnectionTest {
                 500,
                 0,
                 false,
-                Period.ZERO,
+                Duration.ZERO,
                 false
         );
 
