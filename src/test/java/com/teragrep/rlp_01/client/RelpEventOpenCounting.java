@@ -16,14 +16,24 @@
  */
 package com.teragrep.rlp_01.client;
 
-import com.teragrep.rlp_01.pool.Stubable;
+import com.teragrep.rlp_03.frame.delegate.FrameContext;
+import com.teragrep.rlp_03.frame.delegate.event.RelpEvent;
+import com.teragrep.rlp_03.frame.delegate.event.RelpEventOpen;
 
-import javax.net.ssl.SSLContext;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Wrapper for SSLContext because such do not have stubness property
- */
-public interface SSLContextSupplier extends Supplier<SSLContext>, Stubable {
-    SSLContext get();
+class RelpEventOpenCounting extends RelpEvent {
+    private final AtomicLong openCount;
+    private final RelpEventOpen eventOpen;
+
+    RelpEventOpenCounting(AtomicLong openCount) {
+        this.openCount = openCount;
+        this.eventOpen = new RelpEventOpen();
+    }
+
+    @Override
+    public void accept(FrameContext frameContext) {
+        eventOpen.accept(frameContext);
+        openCount.incrementAndGet();
+    }
 }

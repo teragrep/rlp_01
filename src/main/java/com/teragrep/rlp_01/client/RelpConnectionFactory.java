@@ -23,13 +23,24 @@ import java.util.function.Supplier;
 public class RelpConnectionFactory implements Supplier<IManagedRelpConnection> {
 
     private final RelpConfig relpConfig;
+    private final SocketConfig socketConfig;
     private final SSLContextSupplier sslContextSupplier;
 
     public RelpConnectionFactory(RelpConfig relpConfig) {
-        this(relpConfig, new SSLContextSupplierStub());
+        this(relpConfig, new SocketConfigDefault());
     }
+
+    public RelpConnectionFactory(RelpConfig relpConfig, SocketConfig socketConfig) {
+        this(relpConfig, socketConfig, new SSLContextSupplierStub());
+    }
+
     public RelpConnectionFactory(RelpConfig relpConfig, SSLContextSupplier sslContextSupplier) {
+        this(relpConfig, new SocketConfigDefault(), sslContextSupplier);
+    }
+
+    public RelpConnectionFactory(RelpConfig relpConfig, SocketConfig socketConfig, SSLContextSupplier sslContextSupplier) {
         this.relpConfig = relpConfig;
+        this.socketConfig = socketConfig;
         this.sslContextSupplier = sslContextSupplier;
     }
 
@@ -42,6 +53,11 @@ public class RelpConnectionFactory implements Supplier<IManagedRelpConnection> {
         else {
             relpConnection = new RelpConnectionWithConfig(new RelpConnection(() -> sslContextSupplier.get().createSSLEngine()), relpConfig);
         }
+
+        relpConnection.setReadTimeout(socketConfig.readTimeout());
+        relpConnection.setWriteTimeout(socketConfig.writeTimeout());
+        relpConnection.setConnectionTimeout(socketConfig.connectTimeout());
+        relpConnection.setKeepAlive(socketConfig.keepAlive());
 
         IManagedRelpConnection managedRelpConnection = new ManagedRelpConnection(relpConnection);
 

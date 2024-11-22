@@ -16,14 +16,24 @@
  */
 package com.teragrep.rlp_01.client;
 
-import com.teragrep.rlp_01.pool.Stubable;
+public class SocketConfigDefault implements SocketConfig {
+    @Override
+    public int readTimeout() {
+        return 0;
+    }
 
-import javax.net.ssl.SSLContext;
-import java.util.function.Supplier;
+    @Override
+    public int writeTimeout() {
+        return 0;
+    }
 
-/**
- * Wrapper for SSLContext because such do not have stubness property
- */
-public interface SSLContextSupplier extends Supplier<SSLContext>, Stubable {
-    SSLContext get();
+    @Override
+    public int connectTimeout() {
+        return 0;
+    }
+
+    @Override
+    public boolean keepAlive() {
+        return false;
+    }
 }
