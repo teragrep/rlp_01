@@ -39,7 +39,7 @@ class TestServer implements Runnable, AutoCloseable {
     public void close() throws Exception {
         eventLoop.stop();
         executorService.shutdown();
-        Assertions.assertDoesNotThrow(() -> eventLoopThread.join());
+        eventLoopThread.join();
         server.close(); // closes port
     }
 
