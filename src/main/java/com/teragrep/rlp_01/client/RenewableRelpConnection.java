@@ -16,6 +16,8 @@
  */
 package com.teragrep.rlp_01.client;
 
+import com.teragrep.rlp_01.RelpBatch;
+
 import java.io.IOException;
 import java.time.Instant;
 import java.time.Duration;
@@ -52,11 +54,18 @@ public class RenewableRelpConnection implements IManagedRelpConnection {
 
     @Override
     public void ensureSent(byte[] bytes) {
+        RelpBatch relpBatch = new RelpBatch();
+        relpBatch.insert(bytes);
+        ensureSent(relpBatch);
+    }
+
+    @Override
+    public void ensureSent(RelpBatch relpBatch) {
         if (lastAccess.plus(maxIdle).isBefore(Instant.now())) {
             forceReconnect();
         }
         lastAccess = Instant.now();
-        managedRelpConnection.ensureSent(bytes);
+        managedRelpConnection.ensureSent(relpBatch);
     }
 
     @Override

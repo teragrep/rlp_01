@@ -16,6 +16,8 @@
  */
 package com.teragrep.rlp_01.client;
 
+import com.teragrep.rlp_01.RelpBatch;
+
 import java.io.IOException;
 
 public class ManagedRelpConnectionStub implements IManagedRelpConnection {
@@ -37,6 +39,11 @@ public class ManagedRelpConnectionStub implements IManagedRelpConnection {
 
     @Override
     public void ensureSent(byte[] bytes) {
+        throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
+    }
+
+    @Override
+    public void ensureSent(RelpBatch relpBatch) {
         throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
     }
 
