@@ -20,6 +20,7 @@ import com.teragrep.net_01.channel.socket.PlainFactory;
 import com.teragrep.net_01.eventloop.EventLoop;
 import com.teragrep.net_01.eventloop.EventLoopFactory;
 import com.teragrep.net_01.server.ServerFactory;
+import com.teragrep.rlp_01.RelpBatch;
 import com.teragrep.rlp_01.pool.Pool;
 import com.teragrep.rlp_01.pool.UnboundPool;
 import com.teragrep.rlp_03.frame.FrameDelegationClockFactory;
@@ -271,6 +272,63 @@ public class ManagedConnectionTest {
         Assertions.assertEquals(testCycles, messageList.size());
 
         Pattern heyPattern = Pattern.compile("hey this is rebound relp \\d+");
+        while(!messageList.isEmpty()) {
+            byte[] payload = messageList.removeFirst();
+            Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());
+        }
+
+        Assertions.assertTrue(connectionOpenCount.get() > 1);
+        Assertions.assertEquals(connectionOpenCount.get(), connectionCleanCloseCount.get());
+        connectionOpenCount.set(0);
+        connectionCleanCloseCount.set(0);
+    }
+
+    @Test
+    public void testRelpBatchSend() {
+        RelpConfig relpConfig = new RelpConfig(
+                hostname,
+                port,
+                500,
+                0,
+                false,
+                Duration.ZERO,
+                false
+        );
+
+        RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
+
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(relpConnectionFactory, new ManagedRelpConnectionStub());
+
+        int testCycles = 20;
+        CountDownLatch countDownLatch = new CountDownLatch(testCycles);
+
+
+
+        for (int i = 0; i < testCycles; i++) {
+            final String heyRelp = "hey this is batched relp 0 " + i;
+            final String heyThisBeRelpToo = "hey this is batched relp 1 " + i;
+            ForkJoinPool.commonPool().submit(() -> {
+                RelpBatch relpBatch  = new RelpBatch();
+                relpBatch.insert(heyRelp.getBytes(StandardCharsets.UTF_8));
+                relpBatch.insert(heyThisBeRelpToo.getBytes(StandardCharsets.UTF_8));
+
+                IManagedRelpConnection connection = relpConnectionPool.get();
+
+                // will set timer to 5 millis
+                connection.ensureSent(relpBatch);
+
+                relpConnectionPool.offer(connection);
+                countDownLatch.countDown();
+            });
+        }
+
+        Assertions.assertDoesNotThrow(() -> countDownLatch.await());
+
+        relpConnectionPool.close();
+
+        Assertions.assertEquals(testCycles*2, messageList.size());
+
+        Pattern heyPattern = Pattern.compile("hey this is batched relp \\d \\d+");
         while(!messageList.isEmpty()) {
             byte[] payload = messageList.removeFirst();
             Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());
