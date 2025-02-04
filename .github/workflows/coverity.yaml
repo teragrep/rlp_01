@@ -1,0 +1,99 @@
+name: Coverity
+
+on: push
+
+jobs:
+  verify:
+    name: Verify Code
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.repository, 'teragrep/') }}
+
+    env:
+      COVERITY: coverity_tool
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install jq
+
+      - name: Get version
+        run: printf "RELEASE_VERSION=%q\n" "$(git describe --tags)" >> $GITHUB_ENV
+
+      - name: Setup Maven Central
+        uses: actions/setup-java@v4
+        with:
+          java-version: 8.0.292+10
+          distribution: 'adopt'
+
+      - name: Cache Local Maven Repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+
+      - name: Download Coverity distribution md5sum for cache key
+        run: wget https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project_id=${{ vars.COVERITY_PROJECT_URL_ID }}&md5=1" -O coverity_tool.md5
+
+      - name: Cache pull Coverity distribution, extracted
+        id: cache-pull-coverity-distribution
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/${{ env.COVERITY }}
+          key: ${{ runner.os }}-coverity-${{ hashFiles('coverity_tool.md5') }}
+
+      - name: Move coverity_tool.md5 file so it won't conflict with maven
+        run: mv coverity_tool.md5 ${RUNNER_TEMP}/coverity_tool.md5
+
+      - name: Download and extract Coverity distribution if cache-miss
+        if: steps.cache-pull-coverity-distribution.outputs.cache-hit != 'true'
+        run: |
+          wget --quiet https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project_id=${{ vars.COVERITY_PROJECT_URL_ID }}" -O ${RUNNER_TEMP}/${{ env.COVERITY }}.tgz
+          mkdir -p ${RUNNER_TEMP}/${{ env.COVERITY }}
+          tar zxf ${RUNNER_TEMP}/${{ env.COVERITY }}.tgz -C ${RUNNER_TEMP}/${{ env.COVERITY }} --strip-components 1
+
+      - name: Compile Coverity
+        run: |
+           ${RUNNER_TEMP}/${{ env.COVERITY }}/bin/cov-build --dir ${RUNNER_TEMP}/cov-int mvn -B -Drevision=${{ env.RELEASE_VERSION }} -Dsha1= -Dchangelist= -Dmaven.test.skip.exec=true clean verify
+           cd ${RUNNER_TEMP} && tar czvf ${{ vars.COVERITY_PROJECT_URL_ID }}.tgz cov-int
+
+      - name: Wait for Coverity analysis slot
+        run: |
+          while true; do
+            curl -X POST -d version=${{ env.RELEASE_VERSION }} -d description="automated upload" -d email=${{ secrets.COVERITY_EMAIL }} -d token=${{ secrets.COVERITY_TOKEN }} -d file_name="${{ vars.COVERITY_PROJECT_URL_ID }}.tgz" https://scan.coverity.com/projects/${{ vars.COVERITY_PROJECT_URL_ID }}/builds/init -o ${RUNNER_TEMP}/response;
+
+            if grep -q 'build submission quota' ${RUNNER_TEMP}/response; then
+              cat ${RUNNER_TEMP}/response
+              echo 'Giving up, submission quota met'
+              exit 1
+            fi;
+
+            if grep -q 'already in the queue' ${RUNNER_TEMP}/response; then
+              cat ${RUNNER_TEMP}/response
+              echo 'Waiting for 15 seconds and retrying'
+              sleep 15
+            else
+              break
+            fi
+          done
+
+      - name: Prepare response url
+        run: printf "RESPONSE_URL=%q\n" "$(jq -r '.url' ${RUNNER_TEMP}/response)" >> $GITHUB_ENV
+
+      - name: Upload to Coverity
+        run: |
+          curl -X PUT --header 'Content-Type: application/json' --upload-file ${RUNNER_TEMP}/${{ vars.COVERITY_PROJECT_URL_ID }}.tgz ${{ env.RESPONSE_URL }}
+
+      - name: Prepare build id
+        run: printf "COVERITY_BUILD_ID=%q\n" "$(jq -r '.build_id' ${RUNNER_TEMP}/response)" >> $GITHUB_ENV
+
+      - name: Build Coverity Submit URL
+        run: printf 'COVERITY_SUBMIT_URL=%q/%s/builds/%s/enqueue' "https://scan.coverity.com/projects" "${{ vars.COVERITY_PROJECT_URL_ID }}" "${{ env.COVERITY_BUILD_ID }}" >> $GITHUB_ENV
+
+      - name: Trigger Coverity analysis
+        run: curl -X PUT -d token=${{ secrets.COVERITY_TOKEN }} ${{ env.COVERITY_SUBMIT_URL }}
+
+      - name: Restore coverity_tool.md5 file so caches can be generated
+        run: mv ${RUNNER_TEMP}/coverity_tool.md5 coverity_tool.md5
