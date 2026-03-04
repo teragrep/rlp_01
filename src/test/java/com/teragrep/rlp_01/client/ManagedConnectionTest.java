@@ -20,9 +20,10 @@ import com.teragrep.net_01.channel.socket.PlainFactory;
 import com.teragrep.net_01.eventloop.EventLoop;
 import com.teragrep.net_01.eventloop.EventLoopFactory;
 import com.teragrep.net_01.server.ServerFactory;
+import com.teragrep.poj_01.pool.Pool;
+import com.teragrep.poj_01.pool.PoolableSupplier;
+import com.teragrep.poj_01.pool.UnboundPool;
 import com.teragrep.rlp_01.RelpBatch;
-import com.teragrep.rlp_01.pool.Pool;
-import com.teragrep.rlp_01.pool.UnboundPool;
 import com.teragrep.rlp_03.frame.FrameDelegationClockFactory;
 import com.teragrep.rlp_03.frame.delegate.EventDelegate;
 import com.teragrep.rlp_03.frame.delegate.FrameDelegate;
@@ -136,7 +137,22 @@ public class ManagedConnectionTest {
 
         RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
 
-        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(relpConnectionFactory, new ManagedRelpConnectionStub());
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(new PoolableSupplier<Pool<IManagedRelpConnection>, IManagedRelpConnection>() {
+            @Override
+            public void close() {
+
+            }
+
+            @Override
+            public void accept(final IManagedRelpConnection iManagedRelpConnection) {
+                Assertions.assertDoesNotThrow(iManagedRelpConnection::close);
+            }
+
+            @Override
+            public IManagedRelpConnection apply(final Pool<IManagedRelpConnection> iManagedRelpConnectionPool) {
+                return relpConnectionFactory.get();
+            }
+        }, new ManagedRelpConnectionStub());
 
         int testCycles = 1_000;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
@@ -184,8 +200,22 @@ public class ManagedConnectionTest {
 
         RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
 
-        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(relpConnectionFactory, new ManagedRelpConnectionStub());
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(new PoolableSupplier<Pool<IManagedRelpConnection>, IManagedRelpConnection>() {
+            @Override
+            public void close()  {
 
+            }
+
+            @Override
+            public void accept(final IManagedRelpConnection iManagedRelpConnection) {
+                Assertions.assertDoesNotThrow(iManagedRelpConnection::close);
+            }
+
+            @Override
+            public IManagedRelpConnection apply(final Pool<IManagedRelpConnection> iManagedRelpConnectionPool) {
+                return relpConnectionFactory.get();
+            }
+        }, new ManagedRelpConnectionStub());
         int testCycles = 20;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
 
@@ -241,8 +271,22 @@ public class ManagedConnectionTest {
 
         RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
 
-        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(relpConnectionFactory, new ManagedRelpConnectionStub());
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(new PoolableSupplier<Pool<IManagedRelpConnection>, IManagedRelpConnection>() {
+            @Override
+            public void close() {
 
+            }
+
+            @Override
+            public void accept(final IManagedRelpConnection iManagedRelpConnection) {
+                Assertions.assertDoesNotThrow(iManagedRelpConnection::close);
+            }
+
+            @Override
+            public IManagedRelpConnection apply(final Pool<IManagedRelpConnection> iManagedRelpConnectionPool) {
+                return relpConnectionFactory.get();
+            }
+        }, new ManagedRelpConnectionStub());
         int testCycles = 20;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
 
@@ -297,8 +341,22 @@ public class ManagedConnectionTest {
 
         RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
 
-        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(relpConnectionFactory, new ManagedRelpConnectionStub());
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(new PoolableSupplier<Pool<IManagedRelpConnection>, IManagedRelpConnection>() {
+            @Override
+            public void close() {
 
+            }
+
+            @Override
+            public void accept(final IManagedRelpConnection iManagedRelpConnection) {
+                Assertions.assertDoesNotThrow(iManagedRelpConnection::close);
+            }
+
+            @Override
+            public IManagedRelpConnection apply(final Pool<IManagedRelpConnection> iManagedRelpConnectionPool) {
+                return relpConnectionFactory.get();
+            }
+        }, new ManagedRelpConnectionStub());
         int testCycles = 20;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
 

@@ -16,12 +16,14 @@
  */
 package com.teragrep.rlp_01.client;
 
+import com.teragrep.poj_01.Stubable;
+import com.teragrep.poj_01.pool.Poolable;
 import com.teragrep.rlp_01.RelpBatch;
-import com.teragrep.rlp_01.pool.Poolable;
 
+import java.io.Closeable;
 import java.io.IOException;
 
-public interface IManagedRelpConnection extends Poolable {
+public interface IManagedRelpConnection extends Stubable, Closeable, Poolable {
     void reconnect();
 
     void connect() throws IOException;

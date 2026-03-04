@@ -16,9 +16,15 @@
  */
 package com.teragrep.rlp_01.pool;
 
+import com.teragrep.poj_01.Stubable;
+import com.teragrep.poj_01.pool.Pool;
+import com.teragrep.poj_01.pool.Poolable;
+import com.teragrep.poj_01.pool.PoolableSupplier;
+import com.teragrep.poj_01.pool.UnboundPool;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +38,22 @@ public class PoolTest {
     public void testUnboundPool() {
         AtomicLong report = new AtomicLong();
 
-        Pool<TestPoolable> pool = new UnboundPool<>(() -> new TestPoolableImpl(report), new TestPoolableStub());
+        Pool<TestPoolable> pool = new UnboundPool<>(new PoolableSupplier<Pool<TestPoolable>, TestPoolable>() {
+            @Override
+            public void close() {
+
+            }
+
+            @Override
+            public void accept(final TestPoolable testPoolable) {
+                Assertions.assertDoesNotThrow(testPoolable::close);
+            }
+
+            @Override
+            public TestPoolable apply(final Pool<TestPoolable> testPoolablePool) {
+                return new TestPoolableImpl(report);
+            }
+        }, new TestPoolableStub());
 
         final int testCycles = 1_000_000;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
@@ -53,7 +74,7 @@ public class PoolTest {
         Assertions.assertEquals(testCycles, report.get());
     }
 
-    private interface TestPoolable extends Poolable {
+    private interface TestPoolable extends Stubable, Closeable, Poolable {
         void increment();
     }
 
