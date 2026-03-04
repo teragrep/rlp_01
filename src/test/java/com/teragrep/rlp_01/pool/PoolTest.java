@@ -38,22 +38,7 @@ public class PoolTest {
     public void testUnboundPool() {
         AtomicLong report = new AtomicLong();
 
-        Pool<TestPoolable> pool = new UnboundPool<>(new PoolableSupplier<Pool<TestPoolable>, TestPoolable>() {
-            @Override
-            public void close() {
-
-            }
-
-            @Override
-            public void accept(final TestPoolable testPoolable) {
-                Assertions.assertDoesNotThrow(testPoolable::close);
-            }
-
-            @Override
-            public TestPoolable apply(final Pool<TestPoolable> testPoolablePool) {
-                return new TestPoolableImpl(report);
-            }
-        }, new TestPoolableStub());
+        Pool<TestPoolable> pool = new UnboundPool<>(new PoolableSupplierFake<>((c) -> Assertions.assertDoesNotThrow(c::close), (p) -> new TestPoolableImpl(report)), new TestPoolableStub());
 
         final int testCycles = 1_000_000;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
