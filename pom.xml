@@ -22,6 +22,7 @@
     <junit.version>5.10.0</junit.version>
     <teragrep.tls_01.version>0.7.1</teragrep.tls_01.version>
     <teragrep.poj_01.version>3.0.0</teragrep.poj_01.version>
+    <teragrep.stb_01.version>1.0.0</teragrep.stb_01.version>
   </properties>
   <licenses>
     <license>
@@ -47,6 +48,12 @@
       <groupId>com.teragrep</groupId>
       <artifactId>poj_01</artifactId>
       <version>${teragrep.poj_01.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.teragrep</groupId>
+      <artifactId>stb_01</artifactId>
+      <version>${teragrep.stb_01.version}</version>
     </dependency>
     <!-- tls-channel, without slf4j -->
     <dependency>
