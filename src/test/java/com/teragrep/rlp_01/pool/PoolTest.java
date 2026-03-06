@@ -16,10 +16,8 @@
  */
 package com.teragrep.rlp_01.pool;
 
-import com.teragrep.poj_01.Stubable;
+import com.teragrep.stb_01.Stubable;
 import com.teragrep.poj_01.pool.Pool;
-import com.teragrep.poj_01.pool.Poolable;
-import com.teragrep.poj_01.pool.PoolableSupplier;
 import com.teragrep.poj_01.pool.UnboundPool;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -59,7 +57,7 @@ public class PoolTest {
         Assertions.assertEquals(testCycles, report.get());
     }
 
-    private interface TestPoolable extends Stubable, Closeable, Poolable {
+    private interface TestPoolable extends Stubable, Closeable {
         void increment();
     }
 

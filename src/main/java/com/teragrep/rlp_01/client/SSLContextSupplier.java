@@ -16,7 +16,7 @@
  */
 package com.teragrep.rlp_01.client;
 
-import com.teragrep.poj_01.Stubable;
+import com.teragrep.stb_01.Stubable;
 
 import javax.net.ssl.SSLContext;
 import java.util.function.Supplier;
