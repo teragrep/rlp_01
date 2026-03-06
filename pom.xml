@@ -21,15 +21,14 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <junit.version>5.10.0</junit.version>
     <teragrep.tls_01.version>0.7.1</teragrep.tls_01.version>
+    <teragrep.poj_01.version>3.0.0</teragrep.poj_01.version>
   </properties>
-
   <licenses>
     <license>
       <name>Apache License v2.0</name>
       <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
-
   <developers>
     <developer>
       <name>Mikko Kortelainen</name>
@@ -38,14 +37,17 @@
       <organizationUrl>https://teragrep.com</organizationUrl>
     </developer>
   </developers>
-
   <scm>
     <connection>scm:git:https://github.com/teragrep/rlp_01.git</connection>
     <developerConnection>scm:git:git@github.com:teragrep/rlp_01.git</developerConnection>
     <url>https://github.com/teragrep/rlp_01/tree/master</url>
   </scm>
-
   <dependencies>
+    <dependency>
+      <groupId>com.teragrep</groupId>
+      <artifactId>poj_01</artifactId>
+      <version>${teragrep.poj_01.version}</version>
+    </dependency>
     <!-- tls-channel, without slf4j -->
     <dependency>
       <groupId>com.teragrep</groupId>
@@ -77,7 +79,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
   <build>
     <directory>${project.basedir}/target</directory>
     <finalName>rlp_01</finalName>
