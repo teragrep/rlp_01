@@ -38,8 +38,8 @@ public class RebindableRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void connect() throws IOException {
-        managedRelpConnection.connect();
+    public long connect() throws IOException {
+        return managedRelpConnection.connect();
     }
 
     @Override
@@ -48,21 +48,22 @@ public class RebindableRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void ensureSent(byte[] bytes) {
+    public long ensureSent(byte[] bytes) {
         RelpBatch relpBatch = new RelpBatch();
         relpBatch.insert(bytes);
-        ensureSent(relpBatch);
+        return ensureSent(relpBatch);
     }
 
     @Override
-    public void ensureSent(RelpBatch relpBatch) {
+    public long ensureSent(RelpBatch relpBatch) {
         if (recordsSent >= rebindRequestAmount) {
             reconnect();
             recordsSent = 0;
         }
         int batchLength = relpBatch.getWorkQueueLength();
-        managedRelpConnection.ensureSent(relpBatch);
+        long resendCount = managedRelpConnection.ensureSent(relpBatch);
         recordsSent = recordsSent + batchLength;
+        return resendCount;
     }
 
     @Override

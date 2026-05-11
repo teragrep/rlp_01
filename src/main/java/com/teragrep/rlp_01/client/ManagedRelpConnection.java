@@ -44,8 +44,9 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void connect() {
+    public long connect() {
         boolean connected = false;
+        long reconnectCount = 0;
         while (!connected) {
             try {
                 this.hasConnected = true;
@@ -53,6 +54,7 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
                         .connect(relpConnection.relpConfig().relpTarget, relpConnection.relpConfig().relpPort);
             }
             catch (Exception e) {
+                reconnectCount++;
                 System.err
                         .println(
                                 "Failed to connect to relp server <[" + relpConnection.relpConfig().relpTarget + "]>:<["
@@ -67,6 +69,7 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
                 }
             }
         }
+        return reconnectCount;
     }
 
     private void tearDown() {
@@ -80,18 +83,20 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void ensureSent(RelpBatch relpBatch) {
+    public long ensureSent(RelpBatch relpBatch) {
         // avoid unnecessary exception for fresh connections
         if (!hasConnected) {
             connect();
         }
 
         boolean notSent = true;
+        long resendCount = 0;
         while (notSent) {
             try {
                 relpConnection.commit(relpBatch);
             }
             catch (IllegalStateException | IOException | TimeoutException e) {
+                resendCount++;
                 System.err.println("Exception <" + e.getMessage() + "> while sending relpBatch. Will retry");
             }
             if (!relpBatch.verifyTransactionAll()) {
@@ -103,13 +108,14 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
                 notSent = false;
             }
         }
+        return resendCount;
     }
 
     @Override
-    public void ensureSent(byte[] bytes) {
+    public long ensureSent(byte[] bytes) {
         final RelpBatch relpBatch = new RelpBatch();
         relpBatch.insert(bytes);
-        ensureSent(relpBatch);
+        return ensureSent(relpBatch);
     }
 
     @Override

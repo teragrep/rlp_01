@@ -26,11 +26,11 @@ public interface IManagedRelpConnection extends Stubable, Closeable {
 
     void reconnect();
 
-    void connect() throws IOException;
+    long connect() throws IOException;
 
     void forceReconnect();
 
-    void ensureSent(byte[] bytes);
+    long ensureSent(byte[] bytes);
 
-    void ensureSent(RelpBatch relpBatch);
+    long ensureSent(RelpBatch relpBatch);
 }

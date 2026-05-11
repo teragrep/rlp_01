@@ -109,7 +109,8 @@ public class ManagedConnectionTest {
 
         String heyRelp = "hey this is relp";
 
-        relpConnection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8));
+        long resendCount = relpConnection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8));
+        Assertions.assertEquals(0, resendCount, "there should be no resend required");
 
         Assertions.assertDoesNotThrow(relpConnection::close);
 

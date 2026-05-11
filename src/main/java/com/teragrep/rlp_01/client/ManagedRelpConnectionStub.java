@@ -28,7 +28,7 @@ public class ManagedRelpConnectionStub implements IManagedRelpConnection {
     }
 
     @Override
-    public void connect() throws IOException {
+    public long connect() throws IOException {
         throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
     }
 
@@ -38,12 +38,12 @@ public class ManagedRelpConnectionStub implements IManagedRelpConnection {
     }
 
     @Override
-    public void ensureSent(byte[] bytes) {
+    public long ensureSent(byte[] bytes) {
         throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
     }
 
     @Override
-    public void ensureSent(RelpBatch relpBatch) {
+    public long ensureSent(RelpBatch relpBatch) {
         throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
     }
 
