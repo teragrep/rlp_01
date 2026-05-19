@@ -1,20 +1,19 @@
 /*
-   Java Reliable Event Logging Protocol Library RLP-01
-   Copyright (C) 2021, 2022  Suomen Kanuuna Oy
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-
+* Java Reliable Event Logging Protocol Library RLP-01
+* Copyright (C) 2021-2026 Suomen Kanuuna Oy
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package com.teragrep.rlp_01;
 
 import javax.net.ssl.SSLEngine;
@@ -25,10 +24,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 /**
- * Abstract the concept of RELP session: it handles the
- * handshake with the RELP server, sends RELP messages
- * and receives replies.
- * 
+ * Abstract the concept of RELP session: it handles the handshake with the RELP server, sends RELP messages and receives
+ * replies.
  */
 public class RelpConnection implements RelpSender {
 
@@ -40,17 +37,15 @@ public class RelpConnection implements RelpSender {
     private final RelpParser parser = new RelpParser();
 
     private final static byte[] OFFER;
-    
+
     static {
-        OFFER = ("\nrelp_version=0\nrelp_software=RLP-01\ncommands=" + RelpCommand.SYSLOG + "\n").getBytes(StandardCharsets.US_ASCII);
+        OFFER = ("\nrelp_version=0\nrelp_software=RLP-01\ncommands=" + RelpCommand.SYSLOG + "\n")
+                .getBytes(StandardCharsets.US_ASCII);
     }
 
     private enum RelpConnectionState {
-        CLOSED,
-        OPEN,
-        COMMIT
+        CLOSED, OPEN, COMMIT
     }
-
 
     public int getReadTimeout() {
         return relpClientSocket.getReadTimeout();
@@ -68,46 +63,44 @@ public class RelpConnection implements RelpSender {
         relpClientSocket.setWriteTimeout(writeTimeout);
     }
 
-	public int getConnectionTimeout() {
-		return relpClientSocket.getConnectionTimeout();
-	}
+    public int getConnectionTimeout() {
+        return relpClientSocket.getConnectionTimeout();
+    }
 
-	public void setConnectionTimeout(int timeout) {
-		relpClientSocket.setConnectionTimeout(timeout);
-	}
+    public void setConnectionTimeout(int timeout) {
+        relpClientSocket.setConnectionTimeout(timeout);
+    }
 
     public void setKeepAlive(boolean on) {
         relpClientSocket.setKeepAlive(on);
     }
 
-	public int getRxBufferSize() {
-	    return this.rxBufferSize;
+    public int getRxBufferSize() {
+        return this.rxBufferSize;
     }
 
     public void setRxBufferSize(int size) {
         if (this.state != RelpConnectionState.CLOSED) {
-            throw new IllegalStateException("Connection must be closed to " +
-                    "change rxBufferSize");
+            throw new IllegalStateException("Connection must be closed to " + "change rxBufferSize");
         }
         this.preAllocatedRXBuffer = ByteBuffer.allocateDirect(size);
-	    this.rxBufferSize = size;
+        this.rxBufferSize = size;
     }
 
     public int getTxBufferSize() {
-	    return this.txBufferSize;
+        return this.txBufferSize;
     }
 
     public void setTxBufferSize(int size) {
         if (this.state != RelpConnectionState.CLOSED) {
-            throw new IllegalStateException("Connection must be closed to " +
-                    "change txBufferSize");
+            throw new IllegalStateException("Connection must be closed to " + "change txBufferSize");
         }
         this.preAllocatedTXBuffer = ByteBuffer.allocateDirect(size);
         this.txBufferSize = size;
     }
 
-	private RelpConnectionState state;
-    
+    private RelpConnectionState state;
+
     /**
      * The TXNR generator object.
      */
@@ -134,10 +127,8 @@ public class RelpConnection implements RelpSender {
         this.relpClientSocket = new RelpClientTlsSocket(sslEngineSupplier);
     }
 
-    
     /**
-     * Creates a new RELP session with given server details and connects into it and
-     * does the "open session" command.
+     * Creates a new RELP session with given server details and connects into it and does the "open session" command.
      * 
      * @throws IOException
      */
@@ -164,7 +155,7 @@ public class RelpConnection implements RelpSender {
         return openSuccess;
     }
 
-    public void tearDown()  {
+    public void tearDown() {
         try {
             relpClientSocket.close();
         }
@@ -177,9 +168,8 @@ public class RelpConnection implements RelpSender {
     }
 
     /**
-     Sends a "close session" command to disconnect from the session by creating a "close session"
-     request. (Similar to connect())
-
+     * Sends a "close session" command to disconnect from the session by creating a "close session" request. (Similar to
+     * connect())
      */
     public boolean disconnect() throws IOException, IllegalStateException, TimeoutException {
         if (state != RelpConnectionState.OPEN) {
@@ -194,7 +184,7 @@ public class RelpConnection implements RelpSender {
         if (closeResponse != null && closeResponse.dataLength == 0) {
             closeSuccess = true;
         }
-        if(closeSuccess){
+        if (closeSuccess) {
             relpClientSocket.close();
             this.state = RelpConnectionState.CLOSED;
         }
@@ -211,13 +201,11 @@ public class RelpConnection implements RelpSender {
     }
 
     /**
-     Processes all the jobs in the workQueue of the given batch by iterating
-     through each requestId, retrieving the request frame associated with the id,
-     setting a linearly incremented txID and sending the request to server. Finally
-     calls readAcks to make sure the requests went through and received a response.
-
+     * Processes all the jobs in the workQueue of the given batch by iterating through each requestId, retrieving the
+     * request frame associated with the id, setting a linearly incremented txID and sending the request to server.
+     * Finally calls readAcks to make sure the requests went through and received a response.
      */
-    private void sendBatch(RelpBatch relpBatch)  throws IOException, TimeoutException, IllegalStateException {
+    private void sendBatch(RelpBatch relpBatch) throws IOException, TimeoutException, IllegalStateException {
         // send a batch of requests..
         RelpFrameTX relpRequest;
 
@@ -235,10 +223,7 @@ public class RelpConnection implements RelpSender {
         readAcks(relpBatch);
     }
 
-
-
-    private void readAcks(RelpBatch relpBatch)
-            throws IOException, TimeoutException, IllegalStateException {
+    private void readAcks(RelpBatch relpBatch) throws IOException, TimeoutException, IllegalStateException {
 
         int readBytes;
 
@@ -297,7 +282,8 @@ public class RelpConnection implements RelpSender {
         byteBuffer.flip();
         try {
             relpClientSocket.write(byteBuffer);
-        } finally {
+        }
+        finally {
             byteBuffer.clear();
         }
     }

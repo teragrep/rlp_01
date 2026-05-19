@@ -1,29 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <packaging>jar</packaging>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <groupId>com.teragrep</groupId>
   <artifactId>rlp_01</artifactId>
+  <version>${revision}${sha1}${changelist}</version>
+  <packaging>jar</packaging>
   <name>rlp_01</name>
   <description>A minimal RELP implementation.</description>
   <url>https://teragrep.com</url>
-  <groupId>com.teragrep</groupId>
-  <version>${revision}${sha1}${changelist}</version>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <revision>0.0.1</revision>
-    <changelist>-SNAPSHOT</changelist>
-    <sha1/>
-    <java.version>1.8</java.version>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <junit.version>5.10.0</junit.version>
-    <teragrep.tls_01.version>0.7.1</teragrep.tls_01.version>
-    <teragrep.poj_01.version>3.0.0</teragrep.poj_01.version>
-    <teragrep.stb_01.version>1.0.0</teragrep.stb_01.version>
-  </properties>
   <licenses>
     <license>
       <name>Apache License v2.0</name>
@@ -43,6 +27,20 @@
     <developerConnection>scm:git:git@github.com:teragrep/rlp_01.git</developerConnection>
     <url>https://github.com/teragrep/rlp_01/tree/master</url>
   </scm>
+  <properties>
+    <changelist>-SNAPSHOT</changelist>
+    <java.version>1.8</java.version>
+    <junit.version>5.10.0</junit.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <revision>0.0.1</revision>
+    <sha1></sha1>
+    <teragrep.poj_01.version>3.0.0</teragrep.poj_01.version>
+    <teragrep.stb_01.version>1.0.0</teragrep.stb_01.version>
+    <teragrep.tls_01.version>0.7.1</teragrep.tls_01.version>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>com.teragrep</groupId>
@@ -64,14 +62,14 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
       <version>${junit.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.vintage</groupId>
       <artifactId>junit-vintage-engine</artifactId>
-      <scope>test</scope>
       <version>${junit.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.teragrep</groupId>
@@ -100,11 +98,14 @@
       <plugin>
         <artifactId>maven-enforcer-plugin</artifactId>
         <version>3.3.0</version>
+        <configuration>
+          <rules>
+            <requireJavaVersion>
+              <version>${java.version}</version>
+            </requireJavaVersion>
+          </rules>
+        </configuration>
         <executions>
-          <execution>
-            <id>enforce</id>
-            <phase>none</phase>
-          </execution>
           <execution>
             <id>enforce-maven</id>
             <goals>
@@ -118,14 +119,11 @@
               </rules>
             </configuration>
           </execution>
+          <execution>
+            <id>enforce</id>
+            <phase>none</phase>
+          </execution>
         </executions>
-        <configuration>
-          <rules>
-            <requireJavaVersion>
-              <version>1.8</version>
-            </requireJavaVersion>
-          </rules>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -196,18 +194,368 @@
         </configuration>
         <executions>
           <execution>
-            <id>flatten</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>flatten</goal>
-            </goals>
-          </execution>
-          <execution>
             <id>flatten.clean</id>
-            <phase>clean</phase>
             <goals>
               <goal>clean</goal>
             </goals>
+            <phase>clean</phase>
+          </execution>
+          <execution>
+            <id>flatten</id>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+            <phase>process-resources</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- spotless -->
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <!-- java 8 compatible -->
+        <version>2.30.0</version>
+        <configuration>
+          <java>
+            <toggleOffOn></toggleOffOn>
+            <eclipse>
+              <file>${project.basedir}/eclipse-java-formatter.xml</file>
+              <version>4.10.0</version>
+            </eclipse>
+            <removeUnusedImports></removeUnusedImports>
+            <licenseHeader>
+              <file>${project.basedir}/license-header</file>
+            </licenseHeader>
+          </java>
+          <pom>
+            <sortPom>
+              <!-- see https://github.com/diffplug/spotless/blob/main/plugin-maven/README.md#sortpom -->
+              <encoding>UTF-8</encoding>
+              <lineSeparator>\n</lineSeparator>
+              <expandEmptyElements>true</expandEmptyElements>
+              <keepBlankLines>false</keepBlankLines>
+              <nrOfIndentSpace>2</nrOfIndentSpace>
+              <predefinedSortOrder>recommended_2008_06</predefinedSortOrder>
+              <sortProperties>true</sortProperties>
+              <sortModules>true</sortModules>
+              <sortExecutions>true</sortExecutions>
+            </sortPom>
+          </pom>
+          <formats>
+            <format>
+              <includes>
+                <include>.gitattributes</include>
+                <include>.gitignore</include>
+              </includes>
+              <trimTrailingWhitespace></trimTrailingWhitespace>
+              <endWithNewline></endWithNewline>
+              <indent>
+                <tabs>true</tabs>
+                <spacesPerTab>4</spacesPerTab>
+              </indent>
+            </format>
+          </formats>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>compile</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- apache rat -->
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>0.16.1</version>
+        <inherited>false</inherited>
+        <configuration>
+          <addDefaultLicenseMatchers>false</addDefaultLicenseMatchers>
+          <addDefaultLicenses>false</addDefaultLicenses>
+          <families>
+            <family>
+              <id>Teragrep</id>
+              <name>Apache License, Version 2.0</name>
+            </family>
+          </families>
+          <licenses>
+            <license>
+              <all>
+                <text>Java Reliable Event Logging Protocol Library RLP-01</text>
+                <text>Copyright (C) 2021-2026 Suomen Kanuuna Oy</text>
+                <text>Licensed under the Apache License, Version 2.0</text>
+                <text>http://www.apache.org/licenses/LICENSE-2.0</text>
+              </all>
+              <family>Teragrep</family>
+            </license>
+          </licenses>
+          <consoleOutput>true</consoleOutput>
+          <excludeSubProjects>false</excludeSubProjects>
+          <excludes>
+            <!-- git -->
+            <exclude>.git/**</exclude>
+            <exclude>.gitattributes</exclude>
+            <exclude>.gitignore</exclude>
+            <exclude>.gitmodules</exclude>
+            <exclude>.github/**</exclude>
+            <!-- ci -->
+            <exclude>.github/workflows/*</exclude>
+            <exclude>.github/ISSUE_TEMPLATE/*</exclude>
+            <exclude>.github/PULL_REQUEST_TEMPLATE/*</exclude>
+            <exclude>toolchains.xml</exclude>
+            <exclude>settings.xml</exclude>
+            <!-- maven -->
+            <exclude>pom.xml</exclude>
+            <exclude>eclipse-java-formatter.xml</exclude>
+            <!-- readme -->
+            <exclude>README.adoc</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>test</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- checkstyle -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <!-- These are all errors that will fail the build if triggered -->
+          <execution>
+            <id>scan-errors</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>process-classes</phase>
+            <configuration>
+              <violationSeverity>error</violationSeverity>
+              <logViolationsToConsole>true</logViolationsToConsole>
+              <failOnViolation>true</failOnViolation>
+              <failsOnError>false</failsOnError>
+              <checkstyleRules>
+                <module name="Checker">
+                  <module name="TreeWalker">
+                    <!-- Fails build should be fixed
+
+                    <module name="ClassMemberImpliedModifier"></module>
+                    <module name="CovariantEquals"></module>
+                    <module name="DefaultComesLast"></module>
+                    <module name="EmptyBlock"></module>
+                    <module name="EmptyCatchBlock"></module>
+                    <module name="EmptyStatement"></module>
+                    <module name="EqualsAvoidNull"></module>
+                    <module name="EqualsHashCode"></module>
+                    <module name="FallThrough"></module>
+                    <module name="FinalClass"></module>
+                    <module name="HiddenField">
+                      <property name="ignoreConstructorParameter" value="true"></property>
+                      <property name="ignoreSetter" value="true"></property>
+                    </module>
+                    <module name="IllegalCatch"></module>
+                    <module name="IllegalImport"></module>
+                    <module name="IllegalThrows"></module>
+                    <module name="IllegalToken"></module>
+                    <module name="IllegalType"></module>
+                    <module name="InnerAssignment"></module>
+                    <module name="InterfaceMemberImpliedModifier"></module>
+                    <module name="MissingOverride"></module>
+                    <module name="MissingSwitchDefault"></module>
+                    <module name="ModifiedControlVariable">
+                      <property name="skipEnhancedForLoopVariable" value="true"></property>
+                    </module>
+                    <module name="ModifierOrder"></module>
+                    <module name="MutableException"></module>
+                    <module name="NeedBraces"></module>
+                    <module name="NestedForDepth">
+                      <property name="max" value="2"></property>
+                    </module>
+                    <module name="NestedTryDepth"></module>
+                    <module name="NoClone"></module>
+                    <module name="NoFinalizer"></module>
+                    <module name="OneTopLevelClass"></module>
+                    <module name="PackageDeclaration"></module>
+                    <module name="PackageName">
+                      <property name="format" value="^com\.teragrep\.[a-z]{3}_\d{2}(?:.[a-zA-Z]\w*)*$"></property>
+                    </module>
+                    <module name="ReturnCount">
+                      <property name="max" value="5"></property>
+                    </module>
+                    <module name="StringLiteralEquality"></module>
+                    <module name="SuperClone"></module>
+                    <module name="SuperFinalize"></module>
+                    <module name="TypeName"></module>
+                    <module name="UpperEll"></module>
+                    <module name="VisibilityModifier">
+                      <property name="allowPublicFinalFields" value="true"></property>
+                    </module>
+                    -->
+                  </module>
+                  <module name="Translation"></module>
+                  <module name="UniqueProperties"></module>
+                </module>
+              </checkstyleRules>
+            </configuration>
+          </execution>
+          <!-- These are warnings but will not fail the build -->
+          <execution>
+            <id>scan-warnings</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>process-classes</phase>
+            <configuration>
+              <violationSeverity>warning</violationSeverity>
+              <logViolationsToConsole>true</logViolationsToConsole>
+              <failOnViolation>false</failOnViolation>
+              <failsOnError>false</failsOnError>
+              <checkstyleRules>
+                <module name="Checker">
+                  <module name="TreeWalker">
+                    <module name="ArrayTypeStyle">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="AvoidNestedBlocks">
+                      <property name="allowInSwitchCase" value="true"></property>
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="AvoidNoArgumentSuperConstructorCall">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="AvoidStarImport">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="AvoidStaticImport">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="DeclarationOrder">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="FinalLocalVariable">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="FinalParameters">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="MagicNumber">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="MissingDeprecated">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="MultipleVariableDeclarations">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="NestedForDepth">
+                      <property name="max" value="1"></property>
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="NestedIfDepth">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="NoArrayTrailingComma">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="NoCodeInFile">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="NoEnumTrailingComma">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="OneStatementPerLine">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="OuterTypeFilename">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="ParameterAssignment">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="RedundantImport">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="RequireThis">
+                      <property name="checkFields" value="false"></property>
+                      <property name="checkMethods" value="false"></property>
+                      <property name="validateOnlyOverlapping" value="true"></property>
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="ReturnCount">
+                      <property name="max" value="1"></property>
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="SimplifyBooleanExpression">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="SimplifyBooleanReturn">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="UnnecessarySemicolonAfterOuterTypeDeclaration">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="UnnecessarySemicolonAfterTypeMemberDeclaration">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="UnnecessarySemicolonInEnumeration">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="UnnecessarySemicolonInTryWithResources">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="UnusedLocalVariable">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="VariableDeclarationUsageDistance">
+                      <property name="severity" value="warning"></property>
+                    </module>
+                    <module name="VisibilityModifier">
+                      <property name="allowPublicFinalFields" value="false"></property>
+                      <property name="severity" value="warning"></property>
+                    </module>
+                  </module>
+                  <module name="NewlineAtEndOfFile">
+                    <property name="severity" value="warning"></property>
+                  </module>
+                  <module name="OrderedProperties">
+                    <property name="severity" value="warning"></property>
+                  </module>
+                </module>
+              </checkstyleRules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- spotbugs -->
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <!-- Version 4.8.6.6 is currently last java 8 compatible release -->
+        <version>4.8.6.6</version>
+        <configuration>
+          <!-- Default configuration -->
+          <xmlOutput>true</xmlOutput>
+          <effort>Max</effort>
+          <failThreshold>Low</failThreshold>
+          <failOnError>true</failOnError>
+          <includeTests>true</includeTests>
+          <configuration>
+            <!-- uncomment <excludeFilterFile> and add file to prokect if filtering required, see more in mvn_01 project -->
+            <!-- <excludeFilterFile>${project.basedir}/spotbugs-exclude-filter.xml</excludeFilterFile> -->
+          </configuration>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>test</phase>
           </execution>
         </executions>
       </plugin>
@@ -216,6 +564,17 @@
   <profiles>
     <profile>
       <id>publish-maven-central</id>
+      <distributionManagement>
+        <repository>
+          <id>ossrh</id>
+          <name>Central Repository OSSRH</name>
+          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+      </distributionManagement>
       <build>
         <plugins>
           <plugin>
@@ -237,10 +596,10 @@
             <executions>
               <execution>
                 <id>sign-artifacts</id>
-                <phase>verify</phase>
                 <goals>
                   <goal>sign</goal>
                 </goals>
+                <phase>verify</phase>
                 <configuration>
                   <gpgArguments>
                     <arg>--pinentry-mode</arg>
@@ -252,20 +611,16 @@
           </plugin>
         </plugins>
       </build>
-      <distributionManagement>
-        <snapshotRepository>
-          <id>ossrh</id>
-          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-          <id>ossrh</id>
-          <name>Central Repository OSSRH</name>
-          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-      </distributionManagement>
     </profile>
     <profile>
       <id>publish-github-packages</id>
+      <distributionManagement>
+        <repository>
+          <id>github</id>
+          <name>GitHub Packages</name>
+          <url>https://maven.pkg.github.com/teragrep/rlp_01</url>
+        </repository>
+      </distributionManagement>
       <build>
         <plugins>
           <plugin>
@@ -275,10 +630,10 @@
             <executions>
               <execution>
                 <id>sign-artifacts</id>
-                <phase>verify</phase>
                 <goals>
                   <goal>sign</goal>
                 </goals>
+                <phase>verify</phase>
                 <configuration>
                   <gpgArguments>
                     <arg>--pinentry-mode</arg>
@@ -290,13 +645,6 @@
           </plugin>
         </plugins>
       </build>
-      <distributionManagement>
-        <repository>
-          <id>github</id>
-          <name>GitHub Packages</name>
-          <url>https://maven.pkg.github.com/teragrep/rlp_01</url>
-        </repository>
-      </distributionManagement>
     </profile>
   </profiles>
 </project>

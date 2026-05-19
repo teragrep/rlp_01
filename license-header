@@ -14,18 +14,3 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.teragrep.rlp_01;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-public class RequestIDTest {
-
-    @Test
-    public void testCreateIdentifier() {
-        RequestID id = new RequestID();
-        Assertions.assertEquals(0, id.getNextID(), "Id did not increment correctly");
-        Assertions.assertEquals(1, id.getNextID(), "Id did not increment correctly");
-        Assertions.assertEquals(2, id.getNextID(), "Id did not increment correctly");
-    }
-}

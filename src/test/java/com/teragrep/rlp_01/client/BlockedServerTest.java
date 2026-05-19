@@ -1,19 +1,19 @@
 /*
-   Java Reliable Event Logging Protocol Library RLP-01
-   Copyright (C) 2021-2024  Suomen Kanuuna Oy
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
+* Java Reliable Event Logging Protocol Library RLP-01
+* Copyright (C) 2021-2026 Suomen Kanuuna Oy
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package com.teragrep.rlp_01.client;
 
 import org.junit.jupiter.api.Assertions;
@@ -34,15 +34,7 @@ public class BlockedServerTest {
         final String hostname = "localhost";
         final int port = 34601;
 
-        RelpConfig relpConfig = new RelpConfig(
-                hostname,
-                port,
-                100,
-                0,
-                false,
-                Duration.ZERO,
-                false
-        );
+        RelpConfig relpConfig = new RelpConfig(hostname, port, 100, 0, false, Duration.ZERO, false);
 
         RelpConnectionFactory connectionFactory = new RelpConnectionFactory(relpConfig);
 
@@ -58,7 +50,8 @@ public class BlockedServerTest {
             TestClient testClient = new TestClient(connectionFactory.get(), testString);
 
             Thread thread = new Thread(testClient);
-            TestServer testServer = testServerFactory.create(port, messageList, connectionOpenCount, connectionCleanCloseCount);
+            TestServer testServer = testServerFactory
+                    .create(port, messageList, connectionOpenCount, connectionCleanCloseCount);
             thread.start();
 
             Thread.sleep(500);
@@ -67,7 +60,7 @@ public class BlockedServerTest {
             thread.join();
 
             Assertions.assertEquals(1, messageList.size());
-            Assertions.assertEquals(testString, new String(messageList.removeFirst(), StandardCharsets.UTF_8) );
+            Assertions.assertEquals(testString, new String(messageList.removeFirst(), StandardCharsets.UTF_8));
 
             testServer.close();
         });
@@ -79,17 +72,9 @@ public class BlockedServerTest {
         final String hostname = "localhost";
         final int port = 34601;
 
-        RelpConfig relpConfig = new RelpConfig(
-                hostname,
-                port,
-                100,
-                0,
-                false,
-                Duration.ZERO,
-                false
-        );
+        RelpConfig relpConfig = new RelpConfig(hostname, port, 100, 0, false, Duration.ZERO, false);
 
-        SocketConfig socketConfig = new SocketConfigImpl(50, 50,50, false);
+        SocketConfig socketConfig = new SocketConfigImpl(50, 50, 50, false);
 
         RelpConnectionFactory connectionFactory = new RelpConnectionFactory(relpConfig, socketConfig);
 
@@ -105,7 +90,8 @@ public class BlockedServerTest {
             TestClient testClient = new TestClient(connectionFactory.get(), testString);
 
             Thread thread = new Thread(testClient);
-            TestServer testServer = testServerFactory.create(port, messageList, connectionOpenCount, connectionCleanCloseCount);
+            TestServer testServer = testServerFactory
+                    .create(port, messageList, connectionOpenCount, connectionCleanCloseCount);
             thread.start();
 
             Thread.sleep(500);
@@ -114,7 +100,7 @@ public class BlockedServerTest {
             thread.join();
 
             Assertions.assertEquals(1, messageList.size());
-            Assertions.assertEquals(testString, new String(messageList.removeFirst(), StandardCharsets.UTF_8) );
+            Assertions.assertEquals(testString, new String(messageList.removeFirst(), StandardCharsets.UTF_8));
 
             testServer.close();
         });
@@ -125,17 +111,9 @@ public class BlockedServerTest {
         final String hostname = "localhost";
         final int port = 34601;
 
-        RelpConfig relpConfig = new RelpConfig(
-                hostname,
-                port,
-                100,
-                0,
-                false,
-                Duration.ZERO,
-                false
-        );
+        RelpConfig relpConfig = new RelpConfig(hostname, port, 100, 0, false, Duration.ZERO, false);
 
-        SocketConfig socketConfig = new SocketConfigImpl(50, 1,50, false);
+        SocketConfig socketConfig = new SocketConfigImpl(50, 1, 50, false);
 
         RelpConnectionFactory connectionFactory = new RelpConnectionFactory(relpConfig, socketConfig);
 
@@ -148,12 +126,13 @@ public class BlockedServerTest {
         Assertions.assertDoesNotThrow(() -> {
             String stringTemplate = "hello server, i wait your reply for some time, but this message is long ";
 
-            String testString = String.join("", Collections.nCopies(1024*1024, stringTemplate));
+            String testString = String.join("", Collections.nCopies(1024 * 1024, stringTemplate));
 
             TestClient testClient = new TestClient(connectionFactory.get(), testString);
 
             Thread thread = new Thread(testClient);
-            TestServer testServer = testServerFactory.create(port, messageList, connectionOpenCount, connectionCleanCloseCount);
+            TestServer testServer = testServerFactory
+                    .create(port, messageList, connectionOpenCount, connectionCleanCloseCount);
             thread.start();
 
             Thread.sleep(500);
@@ -162,7 +141,7 @@ public class BlockedServerTest {
             thread.join();
 
             Assertions.assertFalse(messageList.isEmpty()); // write timeout based resends cause duplicates
-            Assertions.assertEquals(testString, new String(messageList.removeFirst(), StandardCharsets.UTF_8) );
+            Assertions.assertEquals(testString, new String(messageList.removeFirst(), StandardCharsets.UTF_8));
 
             testServer.close();
         });
@@ -173,17 +152,9 @@ public class BlockedServerTest {
         final String hostname = "localhost";
         final int port = 34601;
 
-        RelpConfig relpConfig = new RelpConfig(
-                hostname,
-                port,
-                100,
-                0,
-                false,
-                Duration.ZERO,
-                false
-        );
+        RelpConfig relpConfig = new RelpConfig(hostname, port, 100, 0, false, Duration.ZERO, false);
 
-        SocketConfig socketConfig = new SocketConfigImpl(50, 50,50, false);
+        SocketConfig socketConfig = new SocketConfigImpl(50, 50, 50, false);
 
         RelpConnectionFactory connectionFactory = new RelpConnectionFactory(relpConfig, socketConfig);
 
@@ -204,13 +175,14 @@ public class BlockedServerTest {
 
             Thread.sleep(500);
 
-            TestServer testServer = testServerFactory.create(port, messageList, connectionOpenCount, connectionCleanCloseCount);
+            TestServer testServer = testServerFactory
+                    .create(port, messageList, connectionOpenCount, connectionCleanCloseCount);
 
             testServer.run();
             thread.join();
 
             Assertions.assertEquals(1, messageList.size());
-            Assertions.assertEquals(testString, new String(messageList.removeFirst(), StandardCharsets.UTF_8) );
+            Assertions.assertEquals(testString, new String(messageList.removeFirst(), StandardCharsets.UTF_8));
 
             testServer.close();
         });
