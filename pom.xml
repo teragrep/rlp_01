@@ -283,7 +283,7 @@
           <licenses>
             <license>
               <all>
-                <text>Java Reliable Event Logging Protocol Library RLP-01</text>
+                <text>Teragrep Reliable Event Logging Protocol (RELP) Library for Java</text>
                 <text>Copyright (C) 2021-2026 Suomen Kanuuna Oy</text>
                 <text>Licensed under the Apache License, Version 2.0</text>
                 <text>http://www.apache.org/licenses/LICENSE-2.0</text>
@@ -542,7 +542,7 @@
           <!-- Default configuration -->
           <xmlOutput>true</xmlOutput>
           <effort>Max</effort>
-          <failThreshold>Low</failThreshold>
+          <failThreshold>High</failThreshold>
           <failOnError>true</failOnError>
           <includeTests>true</includeTests>
           <configuration>

@@ -17,6 +17,7 @@
 package com.teragrep.rlp_01;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * The RELP response contains the response header, which is the same as in RELP requests. Then there is DATA part.
@@ -51,7 +52,7 @@ public class RelpFrameRX extends AbstractRelpFrame {
         stringBuilder.append(this.dataLength);
         if (this.data != null) {
             stringBuilder.append(' ');
-            stringBuilder.append(new String(this.data));
+            stringBuilder.append(new String(this.data, StandardCharsets.UTF_8));
         }
         stringBuilder.append('\n');
         return stringBuilder.toString();
@@ -73,7 +74,7 @@ public class RelpFrameRX extends AbstractRelpFrame {
         for (byte datum : data) {
             if (position == 3 && datum == ' ') {
                 // three numbers and a space, means it's a code
-                return Integer.parseInt(new String(code));
+                return Integer.parseInt(new String(code, StandardCharsets.UTF_8));
             }
             else if (position >= 3) {
                 throw new IllegalArgumentException("response code too long");

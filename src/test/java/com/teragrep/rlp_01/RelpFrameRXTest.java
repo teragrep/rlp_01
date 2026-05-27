@@ -76,7 +76,8 @@ public class RelpFrameRXTest {
     public void testGetData() {
         String message = "200 OK";
         RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, message.length(), createBuffer(message));
-        Assertions.assertEquals(message, new String(frame.getData()), "frame getData() differs");
+        Assertions
+                .assertEquals(message, new String(frame.getData(), StandardCharsets.UTF_8), "frame getData() differs");
     }
 
     @Test
@@ -135,7 +136,7 @@ public class RelpFrameRXTest {
         String message = "200 OK";
         RelpFrameRX frame = new RelpFrameRX(2, RelpCommand.SYSLOG, message.length(), createBuffer(message));
         Assertions
-                .assertEquals(String.format("2 syslog %s %s\n", message.getBytes().length, message), frame.toString(), "frame toString() differs");
+                .assertEquals(String.format("2 syslog %s %s\n", message.getBytes(StandardCharsets.UTF_8).length, message), frame.toString(), "frame toString() differs");
     }
 
     private ByteBuffer createBuffer(String message) {

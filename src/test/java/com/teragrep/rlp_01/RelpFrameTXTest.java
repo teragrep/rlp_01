@@ -28,9 +28,9 @@ public class RelpFrameTXTest {
 
     @Test
     public void testConstructorByteArray() {
-        RelpFrameTX frame = new RelpFrameTX(message.getBytes());
+        RelpFrameTX frame = new RelpFrameTX(message.getBytes(StandardCharsets.UTF_8));
         Assertions
-                .assertEquals(String.format("0 syslog %s %s", message.getBytes().length, message), frame.toString(), "Frame toString() differs");
+                .assertEquals(String.format("0 syslog %s %s", message.getBytes(StandardCharsets.UTF_8).length, message), frame.toString(), "Frame toString() differs");
         Assertions.assertEquals(RelpCommand.SYSLOG, frame.getCommand(), "Default command differs");
     }
 
@@ -57,9 +57,9 @@ public class RelpFrameTXTest {
 
     @Test
     public void testCommandSyslogWithMessage() {
-        RelpFrameTX frame = new RelpFrameTX(RelpCommand.SYSLOG, message.getBytes());
+        RelpFrameTX frame = new RelpFrameTX(RelpCommand.SYSLOG, message.getBytes(StandardCharsets.UTF_8));
         Assertions
-                .assertEquals(String.format("0 syslog %s %s", message.getBytes().length, message), frame.toString(), "frame toString() differs");
+                .assertEquals(String.format("0 syslog %s %s", message.getBytes(StandardCharsets.UTF_8).length, message), frame.toString(), "frame toString() differs");
         Assertions.assertEquals(RelpCommand.SYSLOG, frame.getCommand(), "Syslog command differs");
     }
 
@@ -86,7 +86,7 @@ public class RelpFrameTXTest {
 
     @Test
     public void testSetTransactionId() {
-        RelpFrameTX frame = new RelpFrameTX(message.getBytes());
+        RelpFrameTX frame = new RelpFrameTX(message.getBytes(StandardCharsets.UTF_8));
         Assertions.assertEquals(0, frame.getTransactionNumber(), "Initial TransactionNumber differs");
         frame.setTransactionNumber(3);
         Assertions.assertEquals(3, frame.getTransactionNumber(), "Changed TransactionNumber differs");
@@ -94,32 +94,32 @@ public class RelpFrameTXTest {
 
     @Test
     public void testExplicitCommand() {
-        RelpFrameTX frame = new RelpFrameTX(RelpCommand.OPEN, message.getBytes());
+        RelpFrameTX frame = new RelpFrameTX(RelpCommand.OPEN, message.getBytes(StandardCharsets.UTF_8));
         Assertions.assertEquals(RelpCommand.OPEN, frame.getCommand(), "Explicit command differs");
     }
 
     @Test
     public void testWrite() {
-        RelpFrameTX frame = new RelpFrameTX(RelpCommand.SYSLOG, message.getBytes());
+        RelpFrameTX frame = new RelpFrameTX(RelpCommand.SYSLOG, message.getBytes(StandardCharsets.UTF_8));
         ByteBuffer buffer = ByteBuffer.allocateDirect(frame.length());
         Assertions.assertDoesNotThrow(() -> frame.write(buffer));
         buffer.flip();
         Assertions
-                .assertEquals(String.format("0 syslog %s %s\n", message.getBytes().length, message), StandardCharsets.UTF_8.decode(buffer).toString(), "Write results differs");
+                .assertEquals(String.format("0 syslog %s %s\n", message.getBytes(StandardCharsets.UTF_8).length, message), StandardCharsets.UTF_8.decode(buffer).toString(), "Write results differs");
     }
 
     @Test
     public void testLength() {
-        RelpFrameTX frame = new RelpFrameTX(message.getBytes());
+        RelpFrameTX frame = new RelpFrameTX(message.getBytes(StandardCharsets.UTF_8));
         Assertions
-                .assertEquals(String.format("0 syslog %s %s\n", message.getBytes().length, message).getBytes().length, frame.length(), "Frame length() differs");
+                .assertEquals(String.format("0 syslog %s %s\n", message.getBytes(StandardCharsets.UTF_8).length, message).getBytes(StandardCharsets.UTF_8).length, frame.length(), "Frame length() differs");
     }
 
     @Test
     public void testToString() {
-        RelpFrameTX frame = new RelpFrameTX(message.getBytes());
+        RelpFrameTX frame = new RelpFrameTX(message.getBytes(StandardCharsets.UTF_8));
         frame.setTransactionNumber(14);
         Assertions
-                .assertEquals(String.format("14 syslog %s %s", message.getBytes().length, message), frame.toString(), "frame toString() differs");
+                .assertEquals(String.format("14 syslog %s %s", message.getBytes(StandardCharsets.UTF_8).length, message), frame.toString(), "frame toString() differs");
     }
 }
