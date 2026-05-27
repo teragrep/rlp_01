@@ -1,20 +1,19 @@
 /*
-   Java Reliable Event Logging Protocol Library RLP-01
-   Copyright (C) 2021, 2022  Suomen Kanuuna Oy
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-
+* Teragrep Reliable Event Logging Protocol (RELP) Library for Java
+* Copyright (C) 2021-2026 Suomen Kanuuna Oy
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package com.teragrep.rlp_01;
 
 import java.io.IOException;
@@ -113,10 +112,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
         // force client mode
         sslEngine.setUseClientMode(true);
 
-        ClientTlsChannel.Builder builder = ClientTlsChannel.newBuilder(
-                socketChannel,
-                sslEngine
-        );
+        ClientTlsChannel.Builder builder = ClientTlsChannel.newBuilder(socketChannel, sslEngine);
 
         tlsChannel = builder.build();
 
@@ -163,9 +159,11 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                 if (currentKey.isWritable() || currentKey.isReadable()) {
                     try {
                         this.tlsChannel.write(byteBuffer);
-                    } catch (NeedsReadException e) {
+                    }
+                    catch (NeedsReadException e) {
                         key.interestOps(SelectionKey.OP_READ); // overwrites previous value
-                    } catch (NeedsWriteException e) {
+                    }
+                    catch (NeedsWriteException e) {
                         key.interestOps(SelectionKey.OP_WRITE); // overwrites previous value
                     }
                 }
@@ -213,9 +211,11 @@ public class RelpClientTlsSocket extends RelpClientSocket {
                         if (readBytes == -1) {
                             throw new IOException("Read failed, end-of-stream reached");
                         }
-                    } catch (NeedsReadException e) {
+                    }
+                    catch (NeedsReadException e) {
                         key.interestOps(SelectionKey.OP_READ); // overwrites previous value
-                    } catch (NeedsWriteException e) {
+                    }
+                    catch (NeedsWriteException e) {
                         key.interestOps(SelectionKey.OP_WRITE); // overwrites previous value
                     }
                 }

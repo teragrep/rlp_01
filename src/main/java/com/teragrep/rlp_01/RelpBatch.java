@@ -1,30 +1,26 @@
 /*
-   Java Reliable Event Logging Protocol Library RLP-01
-   Copyright (C) 2021, 2022  Suomen Kanuuna Oy
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-
+* Teragrep Reliable Event Logging Protocol (RELP) Library for Java
+* Copyright (C) 2021-2026 Suomen Kanuuna Oy
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package com.teragrep.rlp_01;
 
 import java.util.*;
 
 /**
- * A class that is used to send RELP messages to the server.
- * Note, this class is not thread-safe. External synchronization
- * is required if objects of this class are shared by different
- * threads.
- * 
+ * A class that is used to send RELP messages to the server. Note, this class is not thread-safe. External
+ * synchronization is required if objects of this class are shared by different threads.
  */
 public class RelpBatch {
 
@@ -44,31 +40,26 @@ public class RelpBatch {
     }
 
     /**
-     Adds a new syslog message to this sending window by converting
-     it into a RelpFrameTX.
-     Note: this method is not thread-safe, so concurrent threads
-     calling this method must externally synchronized access to here.
-
-     @param syslogMessage
-     The syslog msg.
+     * Adds a new syslog message to this sending window by converting it into a RelpFrameTX. Note: this method is not
+     * thread-safe, so concurrent threads calling this method must externally synchronized access to here.
+     * 
+     * @param syslogMessage The syslog msg.
      */
-    public long insert( byte[] syslogMessage ) {
-        RelpFrameTX relpRequest = new RelpFrameTX( syslogMessage );
-        return putRequest( relpRequest );
+    public long insert(byte[] syslogMessage) {
+        RelpFrameTX relpRequest = new RelpFrameTX(syslogMessage);
+        return putRequest(relpRequest);
     }
 
     /**
-     Adds a new RELP message frame to this sending window.
-
-     @param request
-     The request message.
-     @return id
-     The requestId of the newly created request.
+     * Adds a new RELP message frame to this sending window.
+     * 
+     * @param request The request message.
+     * @return id The requestId of the newly created request.
      */
-    public long putRequest( RelpFrameTX request ) {
+    public long putRequest(RelpFrameTX request) {
         long id = this.reqID.getNextID();
-        this.requests.put( id, request );
-        this.workQueue.add( id );
+        this.requests.put(id, request);
+        this.workQueue.add(id);
         return id;
     }
 
@@ -77,8 +68,8 @@ public class RelpBatch {
     }
 
     public void removeRequest(Long id) {
-        this.requests.remove( id );
-        this.workQueue.remove( id );
+        this.requests.remove(id);
+        this.workQueue.remove(id);
     }
 
     public RelpFrameRX getResponse(Long id) {
@@ -86,15 +77,14 @@ public class RelpBatch {
     }
 
     public void putResponse(Long id, RelpFrameRX response) {
-        if( this.requests.containsKey( id ) ) {
-            this.responses.put( id, response );
+        if (this.requests.containsKey(id)) {
+            this.responses.put(id, response);
         }
     }
 
     public boolean verifyTransaction(Long id) {
-        return this.requests.containsKey(id) &&
-                this.getResponse(id) != null &&
-                this.responses.get(id).getResponseCode() == 200;
+        return this.requests.containsKey(id) && this.getResponse(id) != null
+                && this.responses.get(id).getResponseCode() == 200;
     }
 
     public boolean verifyTransactionAll() {
@@ -123,8 +113,8 @@ public class RelpBatch {
 
     // work queue
     public void retryRequest(Long id) {
-        if( this.requests.containsKey( id ) ) {
-            this.workQueue.add( id );
+        if (this.requests.containsKey(id)) {
+            this.workQueue.add(id);
         }
     }
 
@@ -136,4 +126,3 @@ public class RelpBatch {
         return this.workQueue.pollFirst();
     }
 }
- 

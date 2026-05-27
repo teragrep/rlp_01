@@ -1,19 +1,19 @@
 /*
-   Java Reliable Event Logging Protocol Library RLP-01
-   Copyright (C) 2021-2024  Suomen Kanuuna Oy
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
+* Teragrep Reliable Event Logging Protocol (RELP) Library for Java
+* Copyright (C) 2021-2026 Suomen Kanuuna Oy
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package com.teragrep.rlp_01.client;
 
 import com.teragrep.net_01.channel.socket.PlainFactory;
@@ -21,7 +21,6 @@ import com.teragrep.net_01.eventloop.EventLoop;
 import com.teragrep.net_01.eventloop.EventLoopFactory;
 import com.teragrep.net_01.server.ServerFactory;
 import com.teragrep.poj_01.pool.Pool;
-import com.teragrep.poj_01.pool.PoolableSupplier;
 import com.teragrep.poj_01.pool.UnboundPool;
 import com.teragrep.rlp_01.RelpBatch;
 import com.teragrep.rlp_01.pool.PoolableSupplierFake;
@@ -44,6 +43,7 @@ import java.util.regex.Pattern;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ManagedConnectionTest {
+
     private final String hostname = "localhost";
     private final int port = 33601;
 
@@ -75,7 +75,8 @@ public class ManagedConnectionTest {
 
             relpCommandConsumerMap.put("open", new RelpEventOpenCounting(connectionOpenCount));
 
-            relpCommandConsumerMap.put("syslog", new RelpEventSyslog((frame) -> messageList.add(frame.relpFrame().payload().toBytes())));
+            relpCommandConsumerMap
+                    .put("syslog", new RelpEventSyslog((frame) -> messageList.add(frame.relpFrame().payload().toBytes())));
 
             return new EventDelegate(relpCommandConsumerMap);
         };
@@ -96,18 +97,9 @@ public class ManagedConnectionTest {
         Assertions.assertDoesNotThrow(() -> eventLoopThread.join());
     }
 
-
     @Test
     public void testFactoryProvisionedConnection() {
-        RelpConfig relpConfig = new RelpConfig(
-                hostname,
-                port,
-                500,
-                0,
-                false,
-                Duration.ZERO,
-                false
-        );
+        RelpConfig relpConfig = new RelpConfig(hostname, port, 500, 0, false, Duration.ZERO, false);
 
         RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
 
@@ -126,19 +118,13 @@ public class ManagedConnectionTest {
 
     @Test
     public void testPooledConnections() {
-        RelpConfig relpConfig = new RelpConfig(
-                hostname,
-                port,
-                500,
-                0,
-                false,
-                Duration.ZERO,
-                false
-        );
+        RelpConfig relpConfig = new RelpConfig(hostname, port, 500, 0, false, Duration.ZERO, false);
 
         RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
 
-        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(new PoolableSupplierFake<>(c->Assertions.assertDoesNotThrow(c::close), p -> relpConnectionFactory.get()), new ManagedRelpConnectionStub());
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(
+                new PoolableSupplierFake<>(c -> Assertions.assertDoesNotThrow(c::close), p -> relpConnectionFactory.get()), new ManagedRelpConnectionStub()
+        );
 
         int testCycles = 1_000;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
@@ -161,7 +147,7 @@ public class ManagedConnectionTest {
         Assertions.assertEquals(testCycles, messageList.size());
 
         Pattern heyPattern = Pattern.compile("hey this is relp \\d+");
-        while(!messageList.isEmpty()) {
+        while (!messageList.isEmpty()) {
             byte[] payload = messageList.removeFirst();
             Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());
         }
@@ -174,19 +160,13 @@ public class ManagedConnectionTest {
 
     @Test
     public void testPooledRenewedConnections() {
-        RelpConfig relpConfig = new RelpConfig(
-                hostname,
-                port,
-                500,
-                0,
-                false,
-                Duration.of(5, ChronoUnit.MILLIS),
-                true
-        );
+        RelpConfig relpConfig = new RelpConfig(hostname, port, 500, 0, false, Duration.of(5, ChronoUnit.MILLIS), true);
 
         RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
 
-        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(new PoolableSupplierFake<>(c->Assertions.assertDoesNotThrow(c::close), p -> relpConnectionFactory.get()), new ManagedRelpConnectionStub());
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(
+                new PoolableSupplierFake<>(c -> Assertions.assertDoesNotThrow(c::close), p -> relpConnectionFactory.get()), new ManagedRelpConnectionStub()
+        );
 
         int testCycles = 20;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
@@ -201,14 +181,14 @@ public class ManagedConnectionTest {
                 // exceed 5 millis
                 try {
                     Thread.sleep(10);
-                } catch (InterruptedException e) {
+                }
+                catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
                 relpConnectionPool.offer(connection);
                 countDownLatch.countDown();
             });
         }
-
 
         Assertions.assertDoesNotThrow(() -> countDownLatch.await());
 
@@ -217,7 +197,7 @@ public class ManagedConnectionTest {
         Assertions.assertEquals(testCycles, messageList.size());
 
         Pattern heyPattern = Pattern.compile("hey this is renewed relp \\d+");
-        while(!messageList.isEmpty()) {
+        while (!messageList.isEmpty()) {
             byte[] payload = messageList.removeFirst();
             Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());
         }
@@ -231,19 +211,13 @@ public class ManagedConnectionTest {
 
     @Test
     public void testPooledReboundConnections() {
-        RelpConfig relpConfig = new RelpConfig(
-                hostname,
-                port,
-                500,
-                1,
-                true,
-                Duration.ZERO,
-                false
-        );
+        RelpConfig relpConfig = new RelpConfig(hostname, port, 500, 1, true, Duration.ZERO, false);
 
         RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
 
-        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(new PoolableSupplierFake<>(c->Assertions.assertDoesNotThrow(c::close), p -> relpConnectionFactory.get()), new ManagedRelpConnectionStub());
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(
+                new PoolableSupplierFake<>(c -> Assertions.assertDoesNotThrow(c::close), p -> relpConnectionFactory.get()), new ManagedRelpConnectionStub()
+        );
 
         int testCycles = 20;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
@@ -258,14 +232,14 @@ public class ManagedConnectionTest {
                 // exceed 5 millis
                 try {
                     Thread.sleep(10);
-                } catch (InterruptedException e) {
+                }
+                catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
                 relpConnectionPool.offer(connection);
                 countDownLatch.countDown();
             });
         }
-
 
         Assertions.assertDoesNotThrow(() -> countDownLatch.await());
 
@@ -274,7 +248,7 @@ public class ManagedConnectionTest {
         Assertions.assertEquals(testCycles, messageList.size());
 
         Pattern heyPattern = Pattern.compile("hey this is rebound relp \\d+");
-        while(!messageList.isEmpty()) {
+        while (!messageList.isEmpty()) {
             byte[] payload = messageList.removeFirst();
             Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());
         }
@@ -287,30 +261,22 @@ public class ManagedConnectionTest {
 
     @Test
     public void testRelpBatchSend() {
-        RelpConfig relpConfig = new RelpConfig(
-                hostname,
-                port,
-                500,
-                0,
-                false,
-                Duration.ZERO,
-                false
-        );
+        RelpConfig relpConfig = new RelpConfig(hostname, port, 500, 0, false, Duration.ZERO, false);
 
         RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(relpConfig);
 
-        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(new PoolableSupplierFake<>(c->Assertions.assertDoesNotThrow(c::close), p -> relpConnectionFactory.get()), new ManagedRelpConnectionStub());
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(
+                new PoolableSupplierFake<>(c -> Assertions.assertDoesNotThrow(c::close), p -> relpConnectionFactory.get()), new ManagedRelpConnectionStub()
+        );
 
         int testCycles = 20;
         CountDownLatch countDownLatch = new CountDownLatch(testCycles);
-
-
 
         for (int i = 0; i < testCycles; i++) {
             final String heyRelp = "hey this is batched relp 0 " + i;
             final String heyThisBeRelpToo = "hey this is batched relp 1 " + i;
             ForkJoinPool.commonPool().submit(() -> {
-                RelpBatch relpBatch  = new RelpBatch();
+                RelpBatch relpBatch = new RelpBatch();
                 relpBatch.insert(heyRelp.getBytes(StandardCharsets.UTF_8));
                 relpBatch.insert(heyThisBeRelpToo.getBytes(StandardCharsets.UTF_8));
 
@@ -328,10 +294,10 @@ public class ManagedConnectionTest {
 
         relpConnectionPool.close();
 
-        Assertions.assertEquals(testCycles*2, messageList.size());
+        Assertions.assertEquals(testCycles * 2, messageList.size());
 
         Pattern heyPattern = Pattern.compile("hey this is batched relp \\d \\d+");
-        while(!messageList.isEmpty()) {
+        while (!messageList.isEmpty()) {
             byte[] payload = messageList.removeFirst();
             Assertions.assertTrue(heyPattern.matcher(new String(payload, StandardCharsets.UTF_8)).matches());
         }
