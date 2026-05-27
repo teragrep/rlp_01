@@ -27,7 +27,7 @@ public class RelpParserTest {
 
     public RelpParser createParser(String message) {
         RelpParser parser = new RelpParser();
-        for (byte b : message.getBytes()) {
+        for (byte b : message.getBytes(StandardCharsets.UTF_8)) {
             parser.parse(b);
         }
         return parser;
@@ -150,7 +150,7 @@ public class RelpParserTest {
         String message = "0 rsp 3 six\n1 rsp 4 four\n2 rsp 5 five!\n";
         HashMap<Integer, String> results = new HashMap<>();
         RelpParser parser = new RelpParser();
-        for (byte b : message.getBytes()) {
+        for (byte b : message.getBytes(StandardCharsets.UTF_8)) {
             parser.parse(b);
             if (parser.isComplete()) {
                 results.put(parser.getTxnId(), StandardCharsets.UTF_8.decode(parser.getData()).toString());

@@ -32,7 +32,7 @@ public class RelpBatchTest {
         Long id = batch.insert(message.getBytes(StandardCharsets.UTF_8));
         RelpFrameTX frame = batch.getRequest(id);
         Assertions
-                .assertEquals(String.format("0 syslog %s %s", message.getBytes().length, message), frame.toString(), "Did not receive expected value from getRequest");
+                .assertEquals(String.format("0 syslog %s %s", message.getBytes(StandardCharsets.UTF_8).length, message), frame.toString(), "Did not receive expected value from getRequest");
     }
 
     @Test

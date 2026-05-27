@@ -94,7 +94,7 @@ public class SendMessageTest {
         Assertions.assertDoesNotThrow(relpSession::disconnect);
 
         // message must equal to what was send
-        Assertions.assertEquals(msg, new String(messageList.get(0)));
+        Assertions.assertEquals(msg, new String(messageList.get(0), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -111,7 +111,7 @@ public class SendMessageTest {
         Assertions.assertDoesNotThrow(relpSession::disconnect);
 
         // message must equal to what was send
-        Assertions.assertEquals(msg, new String(messageList.get(0)));
+        Assertions.assertEquals(msg, new String(messageList.get(0), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -143,7 +143,7 @@ public class SendMessageTest {
         Assertions.assertDoesNotThrow(relpSession::disconnect);
 
         // message must equal to what was send
-        Assertions.assertEquals(msg, new String(messageList.get(0)));
+        Assertions.assertEquals(msg, new String(messageList.get(0), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -181,8 +181,8 @@ public class SendMessageTest {
         }
 
         // messages must equal to what was send
-        Assertions.assertEquals(msg1, new String(messageList.get(0)));
-        Assertions.assertEquals(msg2, new String(messageList.get(1)));
+        Assertions.assertEquals(msg1, new String(messageList.get(0), StandardCharsets.UTF_8));
+        Assertions.assertEquals(msg2, new String(messageList.get(1), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -201,7 +201,7 @@ public class SendMessageTest {
         Assertions.assertDoesNotThrow(relpSession::disconnect);
 
         for (int i = 0; i < n; i++) {
-            Assertions.assertEquals(msg, new String(messageList.get(i)));
+            Assertions.assertEquals(msg, new String(messageList.get(i), StandardCharsets.UTF_8));
         }
     }
 
