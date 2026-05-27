@@ -1,5 +1,5 @@
 /*
-* Java Reliable Event Logging Protocol Library RLP-01
+* Teragrep Reliable Event Logging Protocol (RELP) Library for Java
 * Copyright (C) 2021-2026 Suomen Kanuuna Oy
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
