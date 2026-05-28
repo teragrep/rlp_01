@@ -1,19 +1,19 @@
 /*
-   Java Reliable Event Logging Protocol Library RLP-01
-   Copyright (C) 2021-2024  Suomen Kanuuna Oy
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
+* Teragrep Reliable Event Logging Protocol (RELP) Library for Java
+* Copyright (C) 2021-2026 Suomen Kanuuna Oy
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package com.teragrep.rlp_01.client;
 
 import com.teragrep.rlp_01.RelpBatch;
@@ -25,7 +25,6 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
 
     private final IRelpConnection relpConnection;
     private boolean hasConnected;
-
 
     public ManagedRelpConnection(IRelpConnection relpConnection) {
         this.relpConnection = relpConnection;
@@ -58,16 +57,22 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
                 this.hasConnected = true;
                 connected = relpConnection
                         .connect(relpConnection.relpConfig().relpTarget, relpConnection.relpConfig().relpPort);
-            } catch (Exception e) {
-                System.err.println(
-                        "Failed to connect to relp server <[" + relpConnection.relpConfig().relpTarget + "]>:<[" + relpConnection.relpConfig().relpPort + "]>: <" + e.getMessage() + ">");
+            }
+            catch (Exception e) {
+                System.err
+                        .println(
+                                "Failed to connect to relp server <[" + relpConnection.relpConfig().relpTarget + "]>:<["
+                                        + relpConnection.relpConfig().relpPort + "]>: <" + e.getMessage() + ">"
+                        );
 
                 try {
                     Thread.sleep(relpConnection.relpConfig().relpReconnectInterval);
-                } catch (InterruptedException exception) {
+                }
+                catch (InterruptedException exception) {
                     System.err.println("Reconnection timer interrupted, reconnecting now");
                 }
-            } finally {
+            }
+            finally {
                 attempts++;
             }
         }
@@ -102,16 +107,19 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
         while (notSent) {
             try {
                 relpConnection.commit(relpBatch);
-            } catch (IllegalStateException | IOException | TimeoutException e) {
+            }
+            catch (IllegalStateException | IOException | TimeoutException e) {
                 System.err.println("Exception <" + e.getMessage() + "> while sending relpBatch. Will retry");
-            } finally {
+            }
+            finally {
                 attempts++;
             }
             if (!relpBatch.verifyTransactionAll()) {
                 relpBatch.retryAllFailed();
                 this.tearDown();
                 this.connect();
-            } else {
+            }
+            else {
                 notSent = false;
             }
         }
@@ -134,9 +142,11 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
     public void close() {
         try {
             this.relpConnection.disconnect();
-        } catch (IllegalStateException | IOException | TimeoutException e) {
+        }
+        catch (IllegalStateException | IOException | TimeoutException e) {
             System.err.println("Forcefully closing connection due to exception <" + e.getMessage() + ">");
-        } finally {
+        }
+        finally {
             tearDown();
         }
     }
