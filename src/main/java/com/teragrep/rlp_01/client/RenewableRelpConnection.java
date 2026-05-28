@@ -41,9 +41,9 @@ public class RenewableRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void connect() throws IOException {
+    public long connect() throws IOException {
         lastAccess = Instant.now();
-        managedRelpConnection.connect();
+        return managedRelpConnection.connect();
     }
 
     @Override
@@ -53,19 +53,19 @@ public class RenewableRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void ensureSent(byte[] bytes) {
+    public long ensureSent(byte[] bytes) {
         RelpBatch relpBatch = new RelpBatch();
         relpBatch.insert(bytes);
-        ensureSent(relpBatch);
+        return ensureSent(relpBatch);
     }
 
     @Override
-    public void ensureSent(RelpBatch relpBatch) {
+    public long ensureSent(RelpBatch relpBatch) {
         if (lastAccess.plus(maxIdle).isBefore(Instant.now())) {
             forceReconnect();
         }
         lastAccess = Instant.now();
-        managedRelpConnection.ensureSent(relpBatch);
+        return managedRelpConnection.ensureSent(relpBatch);
     }
 
     @Override

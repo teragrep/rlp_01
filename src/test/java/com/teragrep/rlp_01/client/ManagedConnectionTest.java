@@ -109,7 +109,8 @@ public class ManagedConnectionTest {
 
         String heyRelp = "hey this is relp";
 
-        relpConnection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8));
+        long attempts = relpConnection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8));
+        Assertions.assertEquals(1, attempts, "there should be one send attempts");
 
         Assertions.assertDoesNotThrow(relpConnection::close);
 

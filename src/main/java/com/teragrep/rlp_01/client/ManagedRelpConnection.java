@@ -43,9 +43,15 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
         connect();
     }
 
+    /**
+     * Tries to establish a relp connection indefinitely, on failure awaits a configured interval before retry.
+     *
+     * @return number of attempts required to connect
+     */
     @Override
-    public void connect() {
+    public long connect() {
         boolean connected = false;
+        long attempts = 0;
         while (!connected) {
             try {
                 this.hasConnected = true;
@@ -66,7 +72,11 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
                     System.err.println("Reconnection timer interrupted, reconnecting now");
                 }
             }
+            finally {
+                attempts++;
+            }
         }
+        return attempts;
     }
 
     private void tearDown() {
@@ -79,20 +89,30 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
         }
     }
 
+    /**
+     * Tries to commit a relp batch to a connection indefinitely until successful.
+     *
+     * @param relpBatch relp batch to be commited
+     * @return number of attempts required to commit a batch
+     */
     @Override
-    public void ensureSent(RelpBatch relpBatch) {
+    public long ensureSent(RelpBatch relpBatch) {
         // avoid unnecessary exception for fresh connections
         if (!hasConnected) {
             connect();
         }
 
         boolean notSent = true;
+        long attempts = 0;
         while (notSent) {
             try {
                 relpConnection.commit(relpBatch);
             }
             catch (IllegalStateException | IOException | TimeoutException e) {
                 System.err.println("Exception <" + e.getMessage() + "> while sending relpBatch. Will retry");
+            }
+            finally {
+                attempts++;
             }
             if (!relpBatch.verifyTransactionAll()) {
                 relpBatch.retryAllFailed();
@@ -103,13 +123,14 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
                 notSent = false;
             }
         }
+        return attempts;
     }
 
     @Override
-    public void ensureSent(byte[] bytes) {
+    public long ensureSent(byte[] bytes) {
         final RelpBatch relpBatch = new RelpBatch();
         relpBatch.insert(bytes);
-        ensureSent(relpBatch);
+        return ensureSent(relpBatch);
     }
 
     @Override
