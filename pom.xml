@@ -39,7 +39,7 @@
     <sha1></sha1>
     <teragrep.poj_01.version>3.0.0</teragrep.poj_01.version>
     <teragrep.stb_01.version>1.0.0</teragrep.stb_01.version>
-    <teragrep.tls_01.version>0.7.1</teragrep.tls_01.version>
+    <teragrep.tls_01.version>0.8.0</teragrep.tls_01.version>
   </properties>
   <dependencies>
     <dependency>
