@@ -111,7 +111,7 @@ public class BlockedServerTest {
         final String hostname = "localhost";
         final int port = 34601;
 
-        RelpConfig relpConfig = new RelpConfig(hostname, port, 100, 0, false, Duration.ZERO, false);
+        RelpConfig relpConfig = new RelpConfig(hostname, port, 100, 0, false, Duration.ZERO, false, 20);
 
         SocketConfig socketConfig = new SocketConfigImpl(50, 1, 50, false);
 
