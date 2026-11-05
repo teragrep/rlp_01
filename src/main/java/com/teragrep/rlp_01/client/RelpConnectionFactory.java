@@ -76,6 +76,12 @@ public class RelpConnectionFactory implements Supplier<IManagedRelpConnection> {
             managedRelpConnection = new RenewableRelpConnection(managedRelpConnection, relpConfig.maxIdle);
         }
 
+        managedRelpConnection = new RetryableRelpConnection(
+                managedRelpConnection,
+                relpConfig.maxConnectionAttempts,
+                relpConfig.relpReconnectInterval
+        );
+
         return managedRelpConnection;
     }
 }

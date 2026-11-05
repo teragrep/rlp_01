@@ -23,6 +23,8 @@ import com.teragrep.net_01.server.ServerFactory;
 import com.teragrep.poj_01.pool.Pool;
 import com.teragrep.poj_01.pool.UnboundPool;
 import com.teragrep.rlp_01.RelpBatch;
+import com.teragrep.rlp_01.RelpConnection;
+import com.teragrep.rlp_01.client.exceptions.RelpConnectionException;
 import com.teragrep.rlp_01.pool.PoolableSupplierFake;
 import com.teragrep.rlp_03.frame.FrameDelegationClockFactory;
 import com.teragrep.rlp_03.frame.delegate.EventDelegate;
@@ -109,7 +111,8 @@ public class ManagedConnectionTest {
 
         String heyRelp = "hey this is relp";
 
-        long attempts = relpConnection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8));
+        long attempts = Assertions
+                .assertDoesNotThrow(() -> relpConnection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8)));
         Assertions.assertEquals(1, attempts, "there should be one send attempts");
 
         Assertions.assertDoesNotThrow(relpConnection::close);
@@ -135,7 +138,7 @@ public class ManagedConnectionTest {
             ForkJoinPool.commonPool().submit(() -> {
                 IManagedRelpConnection connection = relpConnectionPool.get();
 
-                connection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8));
+                Assertions.assertDoesNotThrow(() -> connection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8)));
                 relpConnectionPool.offer(connection);
                 countDownLatch.countDown();
             });
@@ -178,7 +181,7 @@ public class ManagedConnectionTest {
                 IManagedRelpConnection connection = relpConnectionPool.get();
 
                 // will set timer to 5 millis
-                connection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8));
+                Assertions.assertDoesNotThrow(() -> connection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8)));
                 // exceed 5 millis
                 try {
                     Thread.sleep(10);
@@ -229,7 +232,7 @@ public class ManagedConnectionTest {
                 IManagedRelpConnection connection = relpConnectionPool.get();
 
                 // will set timer to 5 millis
-                connection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8));
+                Assertions.assertDoesNotThrow(() -> connection.ensureSent(heyRelp.getBytes(StandardCharsets.UTF_8)));
                 // exceed 5 millis
                 try {
                     Thread.sleep(10);
@@ -284,7 +287,7 @@ public class ManagedConnectionTest {
                 IManagedRelpConnection connection = relpConnectionPool.get();
 
                 // will set timer to 5 millis
-                connection.ensureSent(relpBatch);
+                Assertions.assertDoesNotThrow(() -> connection.ensureSent(relpBatch));
 
                 relpConnectionPool.offer(connection);
                 countDownLatch.countDown();
@@ -307,5 +310,58 @@ public class ManagedConnectionTest {
         Assertions.assertEquals(connectionOpenCount.get(), connectionCleanCloseCount.get());
         connectionOpenCount.set(0);
         connectionCleanCloseCount.set(0);
+    }
+
+    @Test
+    public void testEnsureSentThrowsWhenAttemptsEnd() {
+        final int silentPort = 33608;
+        RelpConfig relpConfig = new RelpConfig(hostname, silentPort, 100, 0, false, Duration.ZERO, false, 10, 5);
+        IRelpConnection relpConnection = new RelpConnectionWithConfig(new RelpConnection(), relpConfig);
+
+        relpConnection.setReadTimeout(100);
+        relpConnection.setWriteTimeout(1000);
+        relpConnection.setConnectionTimeout(100);
+        IManagedRelpConnection connection = new ManagedRelpConnection(relpConnection);
+
+        final AtomicLong silentOpenCounts = new AtomicLong();
+        final AtomicLong silentCloseCounts = new AtomicLong();
+
+        Assertions.assertDoesNotThrow(() -> {
+            EventLoop silentEventLoop = new EventLoopFactory().create();
+            Thread silentEventLoopThread = new Thread(silentEventLoop);
+            ExecutorService silentExecutorService = Executors.newSingleThreadExecutor();
+
+            Supplier<FrameDelegate> frameDelegateSupplier = () -> {
+                Map<String, RelpEvent> relpCommandConsumerMap = new HashMap<>();
+                relpCommandConsumerMap.put("open", new RelpEventOpenCounting(silentOpenCounts));
+                relpCommandConsumerMap.put("close", new RelpEventCloseCounting(silentCloseCounts));
+                return new EventDelegate(relpCommandConsumerMap);
+            };
+
+            ServerFactory silentServerFactory = new ServerFactory(
+                    silentEventLoop,
+                    silentExecutorService,
+                    new PlainFactory(),
+                    new FrameDelegationClockFactory(frameDelegateSupplier)
+            );
+
+            TestServer silentServer = new TestServer(
+                    silentEventLoop,
+                    silentEventLoopThread,
+                    silentExecutorService,
+                    silentServerFactory.create(silentPort)
+            );
+            silentServer.run();
+
+            byte[] bytes = "hey this is relp".getBytes(StandardCharsets.UTF_8);
+            RelpConnectionException thrown = Assertions
+                    .assertThrows(RelpConnectionException.class, () -> connection.ensureSent(bytes));
+
+            connection.close();
+            silentServer.close();
+
+            Assertions.assertEquals(5, silentOpenCounts.get(), "each attempt should be sent on its own session");
+            Assertions.assertEquals("Failed to send relpBatch in <[5]> attempts", thrown.getMessage());
+        });
     }
 }

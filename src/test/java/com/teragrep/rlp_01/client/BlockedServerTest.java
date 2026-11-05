@@ -111,7 +111,7 @@ public class BlockedServerTest {
         final String hostname = "localhost";
         final int port = 34601;
 
-        RelpConfig relpConfig = new RelpConfig(hostname, port, 100, 0, false, Duration.ZERO, false);
+        RelpConfig relpConfig = new RelpConfig(hostname, port, 100, 0, false, Duration.ZERO, false, 20);
 
         SocketConfig socketConfig = new SocketConfigImpl(50, 1, 50, false);
 
@@ -205,7 +205,8 @@ public class BlockedServerTest {
 
         @Override
         public void run() {
-            connection.ensureSent(testString.getBytes(StandardCharsets.UTF_8));
+            Assertions
+                    .assertDoesNotThrow(() -> connection.ensureSent(testString.getBytes(StandardCharsets.UTF_8)), "Calling run should not throw exception.");
         }
     }
 }

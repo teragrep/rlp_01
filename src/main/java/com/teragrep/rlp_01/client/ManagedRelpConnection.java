@@ -17,6 +17,7 @@
 package com.teragrep.rlp_01.client;
 
 import com.teragrep.rlp_01.RelpBatch;
+import com.teragrep.rlp_01.client.exceptions.*;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -32,51 +33,51 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void forceReconnect() {
+    public void forceReconnect() throws RelpException {
         tearDown();
         connect();
     }
 
     @Override
-    public void reconnect() {
+    public void reconnect() throws RelpException {
         close();
         connect();
     }
 
     /**
-     * Tries to establish a relp connection indefinitely, on failure awaits a configured interval before retry.
+     * Tries to establish a relp connection once.
      *
-     * @return number of attempts required to connect
+     * @return number of attempts made, always 1
+     * @throws RelpTimeoutException     if the connection timed out
+     * @throws RelpConnectionException  if the connection could not be established
+     * @throws RelpNegotiationException if the relp server refused to negotiate the session
      */
     @Override
-    public long connect() {
-        boolean connected = false;
-        long attempts = 0;
-        while (!connected) {
-            try {
-                this.hasConnected = true;
-                connected = relpConnection
-                        .connect(relpConnection.relpConfig().relpTarget, relpConnection.relpConfig().relpPort);
-            }
-            catch (Exception e) {
-                System.err
-                        .println(
-                                "Failed to connect to relp server <[" + relpConnection.relpConfig().relpTarget + "]>:<["
-                                        + relpConnection.relpConfig().relpPort + "]>: <" + e.getMessage() + ">"
-                        );
-
-                try {
-                    Thread.sleep(relpConnection.relpConfig().relpReconnectInterval);
-                }
-                catch (InterruptedException exception) {
-                    System.err.println("Reconnection timer interrupted, reconnecting now");
-                }
-            }
-            finally {
-                attempts++;
-            }
+    public long connect() throws RelpException {
+        boolean connected;
+        try {
+            connected = relpConnection
+                    .connect(relpConnection.relpConfig().relpTarget, relpConnection.relpConfig().relpPort);
         }
-        return attempts;
+        catch (TimeoutException e) {
+            throw new RelpTimeoutException(
+                    "Timed out connecting to relp server <[" + relpConnection.relpConfig().relpTarget + "]>:<["
+                            + relpConnection.relpConfig().relpPort + "]>",
+                    e
+            );
+        }
+        catch (Exception e) {
+            throw new RelpConnectionException(
+                    "Failed to connect to relp server <[" + relpConnection.relpConfig().relpTarget + "]>:<["
+                            + relpConnection.relpConfig().relpPort + "]> <" + e.getMessage() + ">",
+                    e
+            );
+        }
+        if (!connected) {
+            throw new RelpNegotiationException("Relp server refused to negotiate session");
+        }
+        this.hasConnected = true;
+        return 1;
     }
 
     private void tearDown() {
@@ -90,13 +91,16 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
     }
 
     /**
-     * Tries to commit a relp batch to a connection indefinitely until successful.
+     * Tries to commit a relp batch to a connection indefinitely until successful or the configured attempts are spent.
      *
      * @param relpBatch relp batch to be commited
      * @return number of attempts required to commit a batch
+     * @throws RelpNotAcknowledgedException if the batch was not acknowledged within the configured attempts
+     * @throws RelpTimeoutException         if sending timed out within the configured attempts
+     * @throws RelpConnectionException      if sending failed within the configured attempts
      */
     @Override
-    public long ensureSent(RelpBatch relpBatch) {
+    public long ensureSent(RelpBatch relpBatch) throws RelpException {
         // avoid unnecessary exception for fresh connections
         if (!hasConnected) {
             connect();
@@ -105,16 +109,35 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
         boolean notSent = true;
         long attempts = 0;
         while (notSent) {
+            attempts++;
             try {
                 relpConnection.commit(relpBatch);
             }
-            catch (IllegalStateException | IOException | TimeoutException e) {
+            catch (IllegalStateException e) {
+                System.err.println("Exception <" + e.getMessage() + "> while sending relpBatch. Will retry");
+                relpBatch.retryAllFailed();
+                this.tearDown();
+                this.connect();
+                continue;
+            }
+            catch (TimeoutException e) {
+                if (attempts >= relpConnection.relpConfig().maxSendAttempts) {
+                    throw new RelpTimeoutException("Timed out sending relpBatch in <[" + attempts + "]> attempts", e);
+                }
                 System.err.println("Exception <" + e.getMessage() + "> while sending relpBatch. Will retry");
             }
-            finally {
-                attempts++;
+            catch (IOException e) {
+                if (attempts >= relpConnection.relpConfig().maxSendAttempts) {
+                    throw new RelpConnectionException("Failed to send relpBatch in <[" + attempts + "]> attempts", e);
+                }
+                System.err.println("Exception <" + e.getMessage() + "> while sending relpBatch. Will retry");
             }
             if (!relpBatch.verifyTransactionAll()) {
+                if (attempts >= relpConnection.relpConfig().maxSendAttempts) {
+                    throw new RelpNotAcknowledgedException(
+                            "RelpBatch was not acknowledged in <[" + attempts + "]> attempts"
+                    );
+                }
                 relpBatch.retryAllFailed();
                 this.tearDown();
                 this.connect();
@@ -127,7 +150,7 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public long ensureSent(byte[] bytes) {
+    public long ensureSent(byte[] bytes) throws RelpException {
         final RelpBatch relpBatch = new RelpBatch();
         relpBatch.insert(bytes);
         return ensureSent(relpBatch);

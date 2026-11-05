@@ -27,6 +27,8 @@ public class RelpConfig {
     public final boolean rebindEnabled;
     public final Duration maxIdle;
     public final boolean maxIdleEnabled;
+    public final long maxConnectionAttempts;
+    public final long maxSendAttempts;
 
     public RelpConfig(
             String relpTarget,
@@ -37,6 +39,53 @@ public class RelpConfig {
             Duration maxIdle,
             boolean maxIdleEnabled
     ) {
+        this(
+                relpTarget,
+                relpPort,
+                relpReconnectInterval,
+                rebindRequestAmount,
+                rebindEnabled,
+                maxIdle,
+                maxIdleEnabled,
+                Long.MAX_VALUE,
+                Long.MAX_VALUE
+        );
+    }
+
+    public RelpConfig(
+            String relpTarget,
+            int relpPort,
+            int relpReconnectInterval,
+            int rebindRequestAmount,
+            boolean rebindEnabled,
+            Duration maxIdle,
+            boolean maxIdleEnabled,
+            long maxConnectionAttempts
+    ) {
+        this(
+                relpTarget,
+                relpPort,
+                relpReconnectInterval,
+                rebindRequestAmount,
+                rebindEnabled,
+                maxIdle,
+                maxIdleEnabled,
+                maxConnectionAttempts,
+                Long.MAX_VALUE
+        );
+    }
+
+    public RelpConfig(
+            String relpTarget,
+            int relpPort,
+            int relpReconnectInterval,
+            int rebindRequestAmount,
+            boolean rebindEnabled,
+            Duration maxIdle,
+            boolean maxIdleEnabled,
+            long maxConnectionAttempts,
+            long maxSendAttempts
+    ) {
         this.relpTarget = relpTarget;
         this.relpPort = relpPort;
         this.relpReconnectInterval = relpReconnectInterval;
@@ -44,5 +93,7 @@ public class RelpConfig {
         this.rebindEnabled = rebindEnabled;
         this.maxIdle = maxIdle;
         this.maxIdleEnabled = maxIdleEnabled;
+        this.maxConnectionAttempts = maxConnectionAttempts;
+        this.maxSendAttempts = maxSendAttempts;
     }
 }

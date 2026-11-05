@@ -17,20 +17,20 @@
 package com.teragrep.rlp_01.client;
 
 import com.teragrep.rlp_01.RelpBatch;
+import com.teragrep.rlp_01.client.exceptions.RelpException;
 import com.teragrep.stb_01.Stubable;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 public interface IManagedRelpConnection extends Stubable, Closeable {
 
-    void reconnect();
+    void reconnect() throws RelpException;
 
-    long connect() throws IOException;
+    long connect() throws RelpException;
 
-    void forceReconnect();
+    void forceReconnect() throws RelpException;
 
-    long ensureSent(byte[] bytes);
+    long ensureSent(byte[] bytes) throws RelpException;
 
-    long ensureSent(RelpBatch relpBatch);
+    long ensureSent(RelpBatch relpBatch) throws RelpException;
 }
