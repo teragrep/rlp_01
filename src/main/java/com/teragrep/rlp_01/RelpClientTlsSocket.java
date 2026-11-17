@@ -81,15 +81,12 @@ public class RelpClientTlsSocket extends RelpClientSocket {
     private SocketChannel socketChannel;
     private Selector selector;
 
-    private TlsChannel tlsChannel;
+    private TlsChannel tlsChannel = null;
 
     private final Supplier<SSLEngine> sslEngineSupplier;
 
     RelpClientTlsSocket(Supplier<SSLEngine> sslEngineSupplier) {
         this.sslEngineSupplier = sslEngineSupplier;
-        this.selector = new UnopenedSelector();
-        this.socketChannel = new UnopenedSocketChannel();
-        this.tlsChannel = new UnopenedClientTlsChannel();
     }
 
     @Override
