@@ -74,12 +74,13 @@ class RelpClientPlainSocket extends RelpClientSocket {
     private Selector poll;
 
     RelpClientPlainSocket() {
-
+        this.socketChannel = new UnopenedSocketChannel();
+        this.poll = new UnopenedSelector();
     }
 
     @Override
     void open(String hostname, int port) throws IOException, TimeoutException {
-        if (this.poll != null && this.poll.isOpen()) {
+        if (this.poll.isOpen()) {
             // Invalidate all selection key instances in case they were open
             this.poll.close();
         }
