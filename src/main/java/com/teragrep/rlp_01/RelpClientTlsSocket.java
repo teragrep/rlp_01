@@ -23,6 +23,7 @@ import java.nio.channels.SelectionKey;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import tlschannel.ClientTlsChannel;
@@ -75,65 +76,66 @@ public class RelpClientTlsSocket extends RelpClientSocket {
 
     private boolean socketKeepAlive = true;
 
-    private SocketChannelable socketChannel;
-    private Selectorable selector;
+    private final AtomicReference<SocketChannelable> socketChannel;
+    private final AtomicReference<Selectorable> selector;
 
-    private TLSChannelable tlsChannel;
+    private final AtomicReference<TLSChannelable> tlsChannel;
 
     private final Supplier<SSLEngine> sslEngineSupplier;
 
     RelpClientTlsSocket(Supplier<SSLEngine> sslEngineSupplier) {
         this.sslEngineSupplier = sslEngineSupplier;
-        this.socketChannel = new SocketChannelableStub();
-        this.selector = new SelectorableStub();
-        this.tlsChannel = new TLSChannelableStub();
+        this.socketChannel = new AtomicReference<>(new SocketChannelableStub());
+        this.selector = new AtomicReference<>(new SelectorableStub());
+        this.tlsChannel = new AtomicReference<>(new TLSChannelableStub());
     }
 
     @Override
     void open(String hostname, int port) throws IOException, TimeoutException {
-        if (!this.selector.isStub() && this.selector.selector().isOpen()) {
+        if (!this.selector.get().isStub() && this.selector.get().selector().isOpen()) {
             // Invalidate all selection key instances in case they were open
-            this.selector.selector().close();
+            this.selector.get().selector().close();
         }
 
-        this.selector = new SelectorableImpl(java.nio.channels.Selector.open());
+        this.selector.set(new SelectorableImpl(java.nio.channels.Selector.open()));
 
-        this.socketChannel = new SocketChannelableImpl(java.nio.channels.SocketChannel.open());
+        this.socketChannel.set(new SocketChannelableImpl(java.nio.channels.SocketChannel.open()));
         // set KeepAlive
-        this.socketChannel.socketChannel().socket().setKeepAlive(socketKeepAlive);
+        this.socketChannel.get().socketChannel().socket().setKeepAlive(socketKeepAlive);
         // Make sure our poll will only block
-        this.socketChannel.socketChannel().configureBlocking(false);
+        this.socketChannel.get().socketChannel().configureBlocking(false);
         // Poll only for connect
         SelectionKey key = this.socketChannel
+                .get()
                 .socketChannel()
-                .register(this.selector.selector(), SelectionKey.OP_CONNECT);
+                .register(this.selector.get().selector(), SelectionKey.OP_CONNECT);
         // Async connect
-        this.socketChannel.socketChannel().connect(new InetSocketAddress(hostname, port));
+        this.socketChannel.get().socketChannel().connect(new InetSocketAddress(hostname, port));
 
         SSLEngine sslEngine = sslEngineSupplier.get();
         // force client mode
         sslEngine.setUseClientMode(true);
 
-        ClientTlsChannel.Builder builder = ClientTlsChannel.newBuilder(socketChannel.socketChannel(), sslEngine);
+        ClientTlsChannel.Builder builder = ClientTlsChannel.newBuilder(socketChannel.get().socketChannel(), sslEngine);
 
-        tlsChannel = new TLSChannelableImpl(builder.build());
+        tlsChannel.set(new TLSChannelableImpl(builder.build()));
 
         // Poll for connect
         boolean notConnected = true;
         while (notConnected) {
-            int nReady = this.selector.selector().select(this.connectionTimeout);
+            int nReady = this.selector.get().selector().select(this.connectionTimeout);
             // Woke up without anything to do
             if (nReady == 0) {
                 throw new TimeoutException("connection timed out");
             }
             // It would be possible to skip the whole iterator, but we want to make sure if something else than connect
             // fires then it will be discarded.
-            Set<SelectionKey> polledEvents = this.selector.selector().selectedKeys();
+            Set<SelectionKey> polledEvents = this.selector.get().selector().selectedKeys();
             Iterator<SelectionKey> eventIter = polledEvents.iterator();
             while (eventIter.hasNext()) {
                 SelectionKey currentKey = eventIter.next();
                 if (currentKey.isConnectable()) {
-                    if (this.socketChannel.socketChannel().finishConnect()) {
+                    if (this.socketChannel.get().socketChannel().finishConnect()) {
                         // Connection established
                         notConnected = false;
                     }
@@ -147,20 +149,23 @@ public class RelpClientTlsSocket extends RelpClientSocket {
 
     @Override
     void write(ByteBuffer byteBuffer) throws IOException, TimeoutException {
-        SelectionKey key = this.socketChannel.socketChannel().register(this.selector.selector(), SelectionKey.OP_WRITE);
+        SelectionKey key = this.socketChannel
+                .get()
+                .socketChannel()
+                .register(this.selector.get().selector(), SelectionKey.OP_WRITE);
         while (byteBuffer.hasRemaining()) {
-            int nReady = selector.selector().select(this.writeTimeout);
+            int nReady = selector.get().selector().select(this.writeTimeout);
             if (nReady == 0) {
                 throw new TimeoutException("write timed out");
             }
-            Set<SelectionKey> polledEvents = this.selector.selector().selectedKeys();
+            Set<SelectionKey> polledEvents = this.selector.get().selector().selectedKeys();
             Iterator<SelectionKey> eventIter = polledEvents.iterator();
             while (eventIter.hasNext()) {
                 SelectionKey currentKey = eventIter.next();
                 // tlsChannel needs to know about both
                 if (currentKey.isWritable() || currentKey.isReadable()) {
                     try {
-                        this.tlsChannel.tlsChannel().write(byteBuffer);
+                        this.tlsChannel.get().tlsChannel().write(byteBuffer);
                     }
                     catch (NeedsReadException e) {
                         key.interestOps(SelectionKey.OP_READ); // overwrites previous value
@@ -176,11 +181,11 @@ public class RelpClientTlsSocket extends RelpClientSocket {
 
     @Override
     void close() throws IOException {
-        if (!tlsChannel.isStub()) {
-            tlsChannel.tlsChannel().close();
+        if (!tlsChannel.get().isStub()) {
+            tlsChannel.get().tlsChannel().close();
         }
-        if (!selector.isStub()) {
-            selector.selector().close();
+        if (!selector.get().isStub()) {
+            selector.get().selector().close();
         }
     }
 
@@ -189,7 +194,7 @@ public class RelpClientTlsSocket extends RelpClientSocket {
         int readBytes;
         try {
             // try reading data if it is available from the tlsChannel
-            readBytes = tlsChannel.tlsChannel().read(byteBuffer);
+            readBytes = tlsChannel.get().tlsChannel().read(byteBuffer);
         }
         catch (NeedsReadException | NeedsWriteException e) {
             // there is no more data, zero read will need selector to work on it
@@ -202,20 +207,21 @@ public class RelpClientTlsSocket extends RelpClientSocket {
 
         if (readBytes == 0) {
             SelectionKey key = this.socketChannel
+                    .get()
                     .socketChannel()
-                    .register(this.selector.selector(), SelectionKey.OP_READ);
-            int nReady = selector.selector().select(this.readTimeout);
+                    .register(this.selector.get().selector(), SelectionKey.OP_READ);
+            int nReady = selector.get().selector().select(this.readTimeout);
             if (nReady == 0) {
                 throw new TimeoutException("Read timed out");
             }
-            Set<SelectionKey> polledEvents = this.selector.selector().selectedKeys();
+            Set<SelectionKey> polledEvents = this.selector.get().selector().selectedKeys();
             Iterator<SelectionKey> eventIter = polledEvents.iterator();
             while (eventIter.hasNext()) {
                 SelectionKey currentKey = eventIter.next();
                 // tlsChannel needs to know about both
                 if (currentKey.isReadable() || currentKey.isWritable()) {
                     try {
-                        readBytes = tlsChannel.tlsChannel().read(byteBuffer);
+                        readBytes = tlsChannel.get().tlsChannel().read(byteBuffer);
                         if (readBytes == -1) {
                             throw new IOException("Read failed, end-of-stream reached");
                         }

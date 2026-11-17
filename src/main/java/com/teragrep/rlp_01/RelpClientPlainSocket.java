@@ -26,6 +26,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 class RelpClientPlainSocket extends RelpClientSocket {
 
@@ -71,47 +72,50 @@ class RelpClientPlainSocket extends RelpClientSocket {
 
     private boolean socketKeepAlive = true;
 
-    private SocketChannelable socketChannel;
-    private Selectorable poll;
+    private final AtomicReference<SocketChannelable> socketChannel;
+    private final AtomicReference<Selectorable> poll;
 
     RelpClientPlainSocket() {
-        socketChannel = new SocketChannelableStub();
-        poll = new SelectorableStub();
+        socketChannel = new AtomicReference<>(new SocketChannelableStub());
+        poll = new AtomicReference<>(new SelectorableStub());
     }
 
     @Override
     void open(String hostname, int port) throws IOException, TimeoutException {
-        if (!this.poll.isStub() && this.poll.selector().isOpen()) {
+        if (!this.poll.get().isStub() && this.poll.get().selector().isOpen()) {
             // Invalidate all selection key instances in case they were open
-            this.poll.selector().close();
+            this.poll.get().selector().close();
         }
 
-        this.poll = new SelectorableImpl(Selector.open());
-        this.socketChannel = new SocketChannelableImpl(SocketChannel.open());
+        this.poll.set(new SelectorableImpl(Selector.open()));
+        this.socketChannel.set(new SocketChannelableImpl(SocketChannel.open()));
         // set KeepAlive
-        this.socketChannel.socketChannel().socket().setKeepAlive(socketKeepAlive);
+        this.socketChannel.get().socketChannel().socket().setKeepAlive(socketKeepAlive);
         // Make sure our poll will only block
-        this.socketChannel.socketChannel().configureBlocking(false);
+        this.socketChannel.get().socketChannel().configureBlocking(false);
         // Poll only for connect
-        SelectionKey key = this.socketChannel.socketChannel().register(this.poll.selector(), SelectionKey.OP_CONNECT);
+        SelectionKey key = this.socketChannel
+                .get()
+                .socketChannel()
+                .register(this.poll.get().selector(), SelectionKey.OP_CONNECT);
         // Async connect
-        this.socketChannel.socketChannel().connect(new InetSocketAddress(hostname, port));
+        this.socketChannel.get().socketChannel().connect(new InetSocketAddress(hostname, port));
         // Poll for connect
         boolean notConnected = true;
         while (notConnected) {
-            int nReady = this.poll.selector().select(this.connectionTimeout);
+            int nReady = this.poll.get().selector().select(this.connectionTimeout);
             // Woke up without anything to do
             if (nReady == 0) {
                 throw new TimeoutException("connection timed out");
             }
             // It would be possible to skip the whole iterator, but we want to make sure if something else than connect
             // fires then it will be discarded.
-            Set<SelectionKey> polledEvents = this.poll.selector().selectedKeys();
+            Set<SelectionKey> polledEvents = this.poll.get().selector().selectedKeys();
             Iterator<SelectionKey> eventIter = polledEvents.iterator();
             while (eventIter.hasNext()) {
                 SelectionKey currentKey = eventIter.next();
                 if (currentKey.isConnectable()) {
-                    if (this.socketChannel.socketChannel().finishConnect()) {
+                    if (this.socketChannel.get().socketChannel().finishConnect()) {
                         // Connection established
                         notConnected = false;
                     }
@@ -125,19 +129,22 @@ class RelpClientPlainSocket extends RelpClientSocket {
 
     @Override
     void write(ByteBuffer byteBuffer) throws IOException, TimeoutException {
-        SelectionKey key = this.socketChannel.socketChannel().register(this.poll.selector(), SelectionKey.OP_WRITE);
+        SelectionKey key = this.socketChannel
+                .get()
+                .socketChannel()
+                .register(this.poll.get().selector(), SelectionKey.OP_WRITE);
 
         while (byteBuffer.hasRemaining()) {
-            int nReady = poll.selector().select(this.writeTimeout);
+            int nReady = poll.get().selector().select(this.writeTimeout);
             if (nReady == 0) {
                 throw new TimeoutException("write timed out");
             }
-            Set<SelectionKey> polledEvents = this.poll.selector().selectedKeys();
+            Set<SelectionKey> polledEvents = this.poll.get().selector().selectedKeys();
             Iterator<SelectionKey> eventIter = polledEvents.iterator();
             while (eventIter.hasNext()) {
                 SelectionKey currentKey = eventIter.next();
                 if (currentKey.isWritable()) {
-                    this.socketChannel.socketChannel().write(byteBuffer);
+                    this.socketChannel.get().socketChannel().write(byteBuffer);
                 }
                 eventIter.remove();
             }
@@ -148,13 +155,13 @@ class RelpClientPlainSocket extends RelpClientSocket {
     @Override
     void close() throws IOException {
         try {
-            socketChannel.socketChannel().close();
+            socketChannel.get().socketChannel().close();
         }
         catch (ClosedChannelException closedChannelException) {
             // already closed, treat as no-op
         }
         try {
-            poll.selector().close();
+            poll.get().selector().close();
         }
         catch (ClosedChannelException closedChannelException) {
             // already closed, treat as no-op
@@ -165,17 +172,20 @@ class RelpClientPlainSocket extends RelpClientSocket {
     int read(ByteBuffer byteBuffer) throws IOException, TimeoutException {
         int readBytes = -1;
 
-        SelectionKey key = this.socketChannel.socketChannel().register(this.poll.selector(), SelectionKey.OP_READ);
-        int nReady = poll.selector().select(this.readTimeout);
+        SelectionKey key = this.socketChannel
+                .get()
+                .socketChannel()
+                .register(this.poll.get().selector(), SelectionKey.OP_READ);
+        int nReady = poll.get().selector().select(this.readTimeout);
         if (nReady == 0) {
             throw new TimeoutException("read timed out");
         }
-        Set<SelectionKey> polledEvents = this.poll.selector().selectedKeys();
+        Set<SelectionKey> polledEvents = this.poll.get().selector().selectedKeys();
         Iterator<SelectionKey> eventIter = polledEvents.iterator();
         while (eventIter.hasNext()) {
             SelectionKey currentKey = eventIter.next();
             if (currentKey.isReadable()) {
-                readBytes = socketChannel.socketChannel().read(byteBuffer);
+                readBytes = socketChannel.get().socketChannel().read(byteBuffer);
             }
             eventIter.remove();
         }
