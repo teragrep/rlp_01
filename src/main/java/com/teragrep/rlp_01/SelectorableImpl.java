@@ -16,16 +16,25 @@
 */
 package com.teragrep.rlp_01;
 
-import com.teragrep.stb_01.Stubable;
+import java.nio.channels.Selector;
 
-import java.io.IOException;
+public class SelectorableImpl implements Selectorable {
 
-/**
- * A SocketChannel that can be instantiated before it is opened, since SocketChannel objects are instantiated using
- * static method SocketChannel.open() Responsibilities: - Provides access to a {@link java.nio.channels.SocketChannel}
- * object - Reports whether it is a Stub or not
- */
-public interface SocketChannel extends Stubable {
+    private final java.nio.channels.Selector selector;
+    private final boolean isStub;
 
-    java.nio.channels.SocketChannel get() throws IOException;
+    public SelectorableImpl(java.nio.channels.Selector selector) {
+        this.selector = selector;
+        this.isStub = false;
+    }
+
+    @Override
+    public Selector selector() {
+        return selector;
+    }
+
+    @Override
+    public boolean isStub() {
+        return isStub;
+    }
 }

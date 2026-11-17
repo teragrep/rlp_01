@@ -17,22 +17,24 @@
 package com.teragrep.rlp_01;
 
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.Selector;
 
-public class SocketChannelImpl implements SocketChannel {
+public class SelectorableStub implements Selectorable {
 
-    private final java.nio.channels.SocketChannel socketChannel;
+    private final boolean isStub;
 
-    public SocketChannelImpl(java.nio.channels.SocketChannel socketChannel) {
-        this.socketChannel = socketChannel;
+    public SelectorableStub() {
+        this.isStub = true;
     }
 
     @Override
-    public java.nio.channels.SocketChannel get() throws IOException {
-        return socketChannel;
+    public Selector selector() throws IOException {
+        throw new ClosedChannelException();
     }
 
     @Override
     public boolean isStub() {
-        return false;
+        return isStub;
     }
 }

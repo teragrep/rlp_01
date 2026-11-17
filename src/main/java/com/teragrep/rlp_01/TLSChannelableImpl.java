@@ -16,24 +16,25 @@
 */
 package com.teragrep.rlp_01;
 
+import tlschannel.TlsChannel;
+
 import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
 
-public class SocketChannelStub implements SocketChannel {
+public class TLSChannelableImpl implements TLSChannelable {
 
-    private final boolean isStub;
+    private final TlsChannel tlsChannel;
 
-    public SocketChannelStub() {
-        this.isStub = true;
+    public TLSChannelableImpl(TlsChannel tlsChannel) {
+        this.tlsChannel = tlsChannel;
     }
 
     @Override
-    public java.nio.channels.SocketChannel get() throws IOException {
-        throw new ClosedChannelException();
+    public TlsChannel tlsChannel() throws IOException {
+        return tlsChannel;
     }
 
     @Override
     public boolean isStub() {
-        return isStub;
+        return false;
     }
 }

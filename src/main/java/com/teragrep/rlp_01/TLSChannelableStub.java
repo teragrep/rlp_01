@@ -16,16 +16,26 @@
 */
 package com.teragrep.rlp_01;
 
-import com.teragrep.stb_01.Stubable;
+import tlschannel.TlsChannel;
 
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 
-/**
- * A Selector that can be instantiated before it is opened, since Selector objects are instantiated using static method
- * Selector.open() Responsibilities: - Provides access to a {@link java.nio.channels.Selector} object - Reports whether
- * it is a Stub or not
- */
-public interface Selector extends Stubable {
+public class TLSChannelableStub implements TLSChannelable {
 
-    java.nio.channels.Selector get() throws IOException;
+    private final boolean isStub;
+
+    public TLSChannelableStub() {
+        this.isStub = true;
+    }
+
+    @Override
+    public TlsChannel tlsChannel() throws IOException {
+        throw new ClosedChannelException();
+    }
+
+    @Override
+    public boolean isStub() {
+        return isStub;
+    }
 }

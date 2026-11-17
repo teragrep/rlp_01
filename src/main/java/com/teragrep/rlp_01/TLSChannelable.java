@@ -16,25 +16,17 @@
 */
 package com.teragrep.rlp_01;
 
+import com.teragrep.stb_01.Stubable;
 import tlschannel.TlsChannel;
 
 import java.io.IOException;
 
-public class TLSChannelImpl implements TLSChannel {
+/**
+ * A TlsChannel that can be instantiated before it is opened, since TlsChannel objects are instantiated using static
+ * builder method TlsClientChannel.newBuilder().build() Responsibilities: - Provides access to a {@link TlsChannel}
+ * object - Reports whether it is a Stub or not
+ */
+public interface TLSChannelable extends Stubable {
 
-    private final TlsChannel tlsChannel;
-
-    public TLSChannelImpl(TlsChannel tlsChannel) {
-        this.tlsChannel = tlsChannel;
-    }
-
-    @Override
-    public TlsChannel get() throws IOException {
-        return tlsChannel;
-    }
-
-    @Override
-    public boolean isStub() {
-        return false;
-    }
+    TlsChannel tlsChannel() throws IOException;
 }

@@ -16,23 +16,24 @@
 */
 package com.teragrep.rlp_01;
 
-public class SelectorImpl implements Selector {
+import java.io.IOException;
+import java.nio.channels.SocketChannel;
 
-    private final java.nio.channels.Selector selector;
-    private final boolean isStub;
+public class SocketChannelableImpl implements SocketChannelable {
 
-    public SelectorImpl(java.nio.channels.Selector selector) {
-        this.selector = selector;
-        this.isStub = false;
+    private final java.nio.channels.SocketChannel socketChannel;
+
+    public SocketChannelableImpl(java.nio.channels.SocketChannel socketChannel) {
+        this.socketChannel = socketChannel;
     }
 
     @Override
-    public java.nio.channels.Selector get() {
-        return selector;
+    public SocketChannel socketChannel() throws IOException {
+        return socketChannel;
     }
 
     @Override
     public boolean isStub() {
-        return isStub;
+        return false;
     }
 }

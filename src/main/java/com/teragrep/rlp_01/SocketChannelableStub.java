@@ -16,17 +16,25 @@
 */
 package com.teragrep.rlp_01;
 
-import com.teragrep.stb_01.Stubable;
-import tlschannel.TlsChannel;
-
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SocketChannel;
 
-/**
- * A TlsChannel that can be instantiated before it is opened, since TlsChannel objects are instantiated using static
- * builder method TlsClientChannel.newBuilder().build() Responsibilities: - Provides access to a {@link TlsChannel}
- * object - Reports whether it is a Stub or not
- */
-public interface TLSChannel extends Stubable {
+public class SocketChannelableStub implements SocketChannelable {
 
-    TlsChannel get() throws IOException;
+    private final boolean isStub;
+
+    public SocketChannelableStub() {
+        this.isStub = true;
+    }
+
+    @Override
+    public SocketChannel socketChannel() throws IOException {
+        throw new ClosedChannelException();
+    }
+
+    @Override
+    public boolean isStub() {
+        return isStub;
+    }
 }
