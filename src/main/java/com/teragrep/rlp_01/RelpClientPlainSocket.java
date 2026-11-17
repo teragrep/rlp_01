@@ -26,51 +26,53 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 class RelpClientPlainSocket extends RelpClientSocket {
 
-    private int readTimeout = 0;
+    private final AtomicInteger readTimeout = new AtomicInteger(0);
 
     @Override
     public int getReadTimeout() {
-        return readTimeout;
+        return readTimeout.get();
     }
 
     @Override
     public void setReadTimeout(int readTimeout) {
-        this.readTimeout = readTimeout;
+        this.readTimeout.set(readTimeout);
     }
 
     @Override
     public int getWriteTimeout() {
-        return writeTimeout;
+        return writeTimeout.get();
     }
 
     @Override
     public void setWriteTimeout(int writeTimeout) {
-        this.writeTimeout = writeTimeout;
+        this.writeTimeout.set(writeTimeout);
     }
 
     @Override
     public int getConnectionTimeout() {
-        return connectionTimeout;
+        return connectionTimeout.get();
     }
 
     @Override
     public void setConnectionTimeout(int connectionTimeout) {
-        this.connectionTimeout = connectionTimeout;
+        this.connectionTimeout.set(connectionTimeout);
     }
 
     @Override
     public void setKeepAlive(boolean on) {
-        socketKeepAlive = on;
+        socketKeepAlive.set(on);
     }
 
-    private int writeTimeout = 0;
-    private int connectionTimeout = 0;
+    private final AtomicInteger writeTimeout = new AtomicInteger(0);
+    private final AtomicInteger connectionTimeout = new AtomicInteger(0);
 
-    private boolean socketKeepAlive = true;
+    private final AtomicBoolean socketKeepAlive = new AtomicBoolean(true);
 
     private final AtomicReference<SocketChannelable> socketChannel;
     private final AtomicReference<Selectorable> poll;
@@ -90,7 +92,7 @@ class RelpClientPlainSocket extends RelpClientSocket {
         this.poll.set(new SelectorableImpl(Selector.open()));
         this.socketChannel.set(new SocketChannelableImpl(SocketChannel.open()));
         // set KeepAlive
-        this.socketChannel.get().socketChannel().socket().setKeepAlive(socketKeepAlive);
+        this.socketChannel.get().socketChannel().socket().setKeepAlive(socketKeepAlive.get());
         // Make sure our poll will only block
         this.socketChannel.get().socketChannel().configureBlocking(false);
         // Poll only for connect
@@ -103,7 +105,7 @@ class RelpClientPlainSocket extends RelpClientSocket {
         // Poll for connect
         boolean notConnected = true;
         while (notConnected) {
-            int nReady = this.poll.get().selector().select(this.connectionTimeout);
+            int nReady = this.poll.get().selector().select(this.connectionTimeout.get());
             // Woke up without anything to do
             if (nReady == 0) {
                 throw new TimeoutException("connection timed out");
@@ -135,7 +137,7 @@ class RelpClientPlainSocket extends RelpClientSocket {
                 .register(this.poll.get().selector(), SelectionKey.OP_WRITE);
 
         while (byteBuffer.hasRemaining()) {
-            int nReady = poll.get().selector().select(this.writeTimeout);
+            int nReady = poll.get().selector().select(this.writeTimeout.get());
             if (nReady == 0) {
                 throw new TimeoutException("write timed out");
             }
@@ -176,7 +178,7 @@ class RelpClientPlainSocket extends RelpClientSocket {
                 .get()
                 .socketChannel()
                 .register(this.poll.get().selector(), SelectionKey.OP_READ);
-        int nReady = poll.get().selector().select(this.readTimeout);
+        int nReady = poll.get().selector().select(this.readTimeout.get());
         if (nReady == 0) {
             throw new TimeoutException("read timed out");
         }
