@@ -17,6 +17,8 @@
 package com.teragrep.rlp_01.client;
 
 import com.teragrep.rlp_01.RelpBatch;
+import com.teragrep.rlp_01.exceptions.RelpCommitException;
+import com.teragrep.rlp_01.exceptions.RelpConnectionException;
 
 import java.io.IOException;
 
@@ -33,31 +35,22 @@ public class RebindableRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void reconnect() {
-        managedRelpConnection.reconnect();
-    }
-
-    @Override
-    public long connect() throws IOException {
+    public long connect() throws RelpConnectionException {
         return managedRelpConnection.connect();
     }
 
     @Override
-    public void forceReconnect() {
-        managedRelpConnection.forceReconnect();
-    }
-
-    @Override
-    public long ensureSent(byte[] bytes) {
+    public long ensureSent(byte[] bytes) throws RelpCommitException {
         RelpBatch relpBatch = new RelpBatch();
         relpBatch.insert(bytes);
         return ensureSent(relpBatch);
     }
 
     @Override
-    public long ensureSent(RelpBatch relpBatch) {
+    public long ensureSent(RelpBatch relpBatch) throws RelpCommitException {
         if (recordsSent >= rebindRequestAmount) {
-            reconnect();
+            close();
+            connect();
             recordsSent = 0;
         }
         int batchLength = relpBatch.getWorkQueueLength();
@@ -74,5 +67,10 @@ public class RebindableRelpConnection implements IManagedRelpConnection {
     @Override
     public void close() throws IOException {
         managedRelpConnection.close();
+    }
+
+    @Override
+    public void tearDown() {
+        managedRelpConnection.tearDown();
     }
 }

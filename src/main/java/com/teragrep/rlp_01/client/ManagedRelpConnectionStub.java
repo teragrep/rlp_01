@@ -18,22 +18,10 @@ package com.teragrep.rlp_01.client;
 
 import com.teragrep.rlp_01.RelpBatch;
 
-import java.io.IOException;
-
 public class ManagedRelpConnectionStub implements IManagedRelpConnection {
 
     @Override
-    public void reconnect() {
-        throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
-    }
-
-    @Override
-    public long connect() throws IOException {
-        throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
-    }
-
-    @Override
-    public void forceReconnect() {
+    public long connect() {
         throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
     }
 
@@ -54,6 +42,11 @@ public class ManagedRelpConnectionStub implements IManagedRelpConnection {
 
     @Override
     public void close() {
+        throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
+    }
+
+    @Override
+    public void tearDown() {
         throw new IllegalStateException("ManagedRelpConnectionStub does not support this");
     }
 }
