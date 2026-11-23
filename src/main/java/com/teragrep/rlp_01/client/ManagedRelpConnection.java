@@ -17,6 +17,8 @@
 package com.teragrep.rlp_01.client;
 
 import com.teragrep.rlp_01.RelpBatch;
+import com.teragrep.rlp_01.exceptions.RelpCommitException;
+import com.teragrep.rlp_01.exceptions.RelpConnectionException;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -31,55 +33,29 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
         this.hasConnected = false;
     }
 
-    @Override
-    public void forceReconnect() {
-        tearDown();
-        connect();
-    }
-
-    @Override
-    public void reconnect() {
-        close();
-        connect();
-    }
-
     /**
-     * Tries to establish a relp connection indefinitely, on failure awaits a configured interval before retry.
+     * Tries to establish a relp connection. Throws RelpConnectionException if connection fails
      *
      * @return number of attempts required to connect
      */
     @Override
-    public long connect() {
-        boolean connected = false;
-        long attempts = 0;
-        while (!connected) {
-            try {
-                this.hasConnected = true;
-                connected = relpConnection
-                        .connect(relpConnection.relpConfig().relpTarget, relpConnection.relpConfig().relpPort);
-            }
-            catch (Exception e) {
-                System.err
-                        .println(
-                                "Failed to connect to relp server <[" + relpConnection.relpConfig().relpTarget + "]>:<["
-                                        + relpConnection.relpConfig().relpPort + "]>: <" + e.getMessage() + ">"
-                        );
-
-                try {
-                    Thread.sleep(relpConnection.relpConfig().relpReconnectInterval);
-                }
-                catch (InterruptedException exception) {
-                    System.err.println("Reconnection timer interrupted, reconnecting now");
-                }
-            }
-            finally {
-                attempts++;
-            }
+    public long connect() throws RelpConnectionException {
+        try {
+            this.hasConnected = true;
+            relpConnection.connect(relpConnection.relpConfig().relpTarget, relpConnection.relpConfig().relpPort);
         }
-        return attempts;
+        catch (Exception e) {
+            System.err
+                    .println(
+                            "Failed to connect to relp server <[" + relpConnection.relpConfig().relpTarget + "]>:<["
+                                    + relpConnection.relpConfig().relpPort + "]>: <" + e.getMessage() + ">"
+                    );
+            throw new RelpConnectionException("Failed to connect to relp server!", e);
+        }
+        return 1;
     }
 
-    private void tearDown() {
+    public void tearDown() {
         /*
          TODO remove: wouldn't need a check hasConnected but there is a bug in RLP-01 tearDown()
          see https://github.com/teragrep/rlp_01/issues/63 for further info
@@ -90,44 +66,31 @@ public class ManagedRelpConnection implements IManagedRelpConnection {
     }
 
     /**
-     * Tries to commit a relp batch to a connection indefinitely until successful.
+     * Tries to commit a relp batch. Throws RelpCommitException if committing or verifying of batch fails.
      *
      * @param relpBatch relp batch to be commited
      * @return number of attempts required to commit a batch
      */
     @Override
-    public long ensureSent(RelpBatch relpBatch) {
+    public long ensureSent(RelpBatch relpBatch) throws RelpCommitException {
         // avoid unnecessary exception for fresh connections
-        if (!hasConnected) {
-            connect();
-        }
 
-        boolean notSent = true;
         long attempts = 0;
-        while (notSent) {
-            try {
-                relpConnection.commit(relpBatch);
-            }
-            catch (IllegalStateException | IOException | TimeoutException e) {
-                System.err.println("Exception <" + e.getMessage() + "> while sending relpBatch. Will retry");
-            }
-            finally {
-                attempts++;
-            }
-            if (!relpBatch.verifyTransactionAll()) {
-                relpBatch.retryAllFailed();
-                this.tearDown();
-                this.connect();
-            }
-            else {
-                notSent = false;
-            }
+        try {
+            relpConnection.commit(relpBatch);
+        }
+        catch (IllegalStateException | IOException | TimeoutException e) {
+            System.err.println("Exception <" + e.getMessage() + "> while sending relpBatch");
+            throw new RelpCommitException("Failed to commit relpBatch!", e);
+        }
+        if (!relpBatch.verifyTransactionAll()) {
+            throw new RelpCommitException("Failed to verify committed relpBatch!");
         }
         return attempts;
     }
 
     @Override
-    public long ensureSent(byte[] bytes) {
+    public long ensureSent(byte[] bytes) throws RelpCommitException {
         final RelpBatch relpBatch = new RelpBatch();
         relpBatch.insert(bytes);
         return ensureSent(relpBatch);

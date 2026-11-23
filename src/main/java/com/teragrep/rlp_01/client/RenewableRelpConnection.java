@@ -17,6 +17,8 @@
 package com.teragrep.rlp_01.client;
 
 import com.teragrep.rlp_01.RelpBatch;
+import com.teragrep.rlp_01.exceptions.RelpCommitException;
+import com.teragrep.rlp_01.exceptions.RelpConnectionException;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -35,34 +37,23 @@ public class RenewableRelpConnection implements IManagedRelpConnection {
     }
 
     @Override
-    public void reconnect() {
-        lastAccess = Instant.now();
-        managedRelpConnection.reconnect();
-    }
-
-    @Override
-    public long connect() throws IOException {
+    public long connect() throws RelpConnectionException {
         lastAccess = Instant.now();
         return managedRelpConnection.connect();
     }
 
     @Override
-    public void forceReconnect() {
-        lastAccess = Instant.now();
-        managedRelpConnection.forceReconnect();
-    }
-
-    @Override
-    public long ensureSent(byte[] bytes) {
+    public long ensureSent(byte[] bytes) throws RelpCommitException {
         RelpBatch relpBatch = new RelpBatch();
         relpBatch.insert(bytes);
         return ensureSent(relpBatch);
     }
 
     @Override
-    public long ensureSent(RelpBatch relpBatch) {
+    public long ensureSent(RelpBatch relpBatch) throws RelpCommitException {
         if (lastAccess.plus(maxIdle).isBefore(Instant.now())) {
-            forceReconnect();
+            tearDown();
+            connect();
         }
         lastAccess = Instant.now();
         return managedRelpConnection.ensureSent(relpBatch);
@@ -76,5 +67,10 @@ public class RenewableRelpConnection implements IManagedRelpConnection {
     @Override
     public void close() throws IOException {
         managedRelpConnection.close();
+    }
+
+    @Override
+    public void tearDown() {
+        managedRelpConnection.tearDown();
     }
 }

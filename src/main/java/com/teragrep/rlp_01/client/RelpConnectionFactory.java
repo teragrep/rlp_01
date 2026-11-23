@@ -66,7 +66,7 @@ public class RelpConnectionFactory implements Supplier<IManagedRelpConnection> {
         relpConnection.setConnectionTimeout(socketConfig.connectTimeout());
         relpConnection.setKeepAlive(socketConfig.keepAlive());
 
-        IManagedRelpConnection managedRelpConnection = new ManagedRelpConnection(relpConnection);
+        IManagedRelpConnection managedRelpConnection = new RetryableRelpConnection (new AutoConnectableRelpConnection(new ManagedRelpConnection(relpConnection)));
 
         if (relpConfig.rebindEnabled) {
             managedRelpConnection = new RebindableRelpConnection(managedRelpConnection, relpConfig.rebindRequestAmount);
